@@ -88,10 +88,7 @@ function startScanner() {
   const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
   html5QrcodeScanner.start(
-    { 
-      facingMode: "environment",
-      aspectRatio: { ideal: 1.0 } // Force square camera stream from the device hardware
-    },
+    { facingMode: "environment" },
     config,
     qrCodeSuccessCallback,
     (errorMessage) => {
