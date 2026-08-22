@@ -11,6 +11,16 @@
     <style>
         .hidden { display: none !important; }
         .text-xxs { font-size: 0.65rem; }
+        /* Style html5-qrcode video element to fill the square perfectly without distortion */
+        #qr-reader video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 1.5rem; /* Matches the rounded-3xl of the frame */
+        }
+        #qr-reader {
+            border: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col justify-between">
@@ -31,8 +41,8 @@
                     <p class="text-xs text-slate-500 mt-1">Point your camera at the digital QR code on the pilot's license card to parse validity results.</p>
                 </div>
 
-                <!-- QR Scanner Frame -->
-                <div id="qr-reader-container" class="w-full max-w-[320px] mx-auto overflow-hidden rounded-2xl bg-slate-900 aspect-square flex items-center justify-center relative">
+                <!-- QR Scanner Frame (Centered Fixed Square of 250px x 250px) -->
+                <div id="qr-reader-container" class="hidden w-[250px] h-[250px] mx-auto overflow-hidden rounded-3xl bg-slate-950 flex items-center justify-center relative shadow-inner border border-slate-200">
                     <div id="qr-reader" class="w-full h-full"></div>
                 </div>
 
@@ -40,11 +50,11 @@
                 <div id="error-message" class="text-xs text-red-600 bg-red-50 p-3.5 rounded-xl font-semibold text-center empty:hidden"></div>
 
                 <!-- Actions -->
-                <button id="start-scan-btn" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 flex items-center justify-center gap-2 shadow-md">
+                <button id="start-scan-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 flex items-center justify-center gap-2 shadow-md">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
                     Launch Camera Scanner
                 </button>
-                <button id="stop-scan-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 shadow-md">
+                <button id="stop-scan-btn" class="hidden w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 shadow-md">
                     Stop Camera Scanner
                 </button>
 
@@ -93,16 +103,16 @@
                     <div class="flex flex-col gap-3">
                         <div>
                             <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Full Name</span>
-                            <span id="pilot-name" class="font-bold text-slate-900 text-base">Jothiganesh Subramaniam</span>
+                            <span id="pilot-name" class="font-bold text-slate-900 text-base">—</span>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Type</span>
-                                <span id="licence-type" class="font-bold text-slate-800 text-xs">ATPL(A)</span>
+                                <span id="licence-type" class="font-bold text-slate-800 text-xs">—</span>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Number</span>
-                                <span id="licence-number" class="font-bold text-slate-800 text-xs">15333</span>
+                                <span id="licence-number" class="font-bold text-slate-800 text-xs">—</span>
                             </div>
                         </div>
                     </div>
@@ -146,6 +156,6 @@
     </div>
 
     <!-- Inject scanning app behavior -->
-    <script src="app-v4.js"></script>
+    <script src="app-v7.js"></script>
 </body>
 </html>
