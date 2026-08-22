@@ -85,8 +85,29 @@ function startScanner() {
     }
   };
 
+  //addition
+  // Create a dynamic bounding box generator function
+  const dynamicQrBox = function(viewfinderWidth, viewfinderHeight) {
+    // Determine the shorter side of the active video frame track
+    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+    
+    // Calculate the square targeting size (e.g., 70% of the short edge)
+    // Make sure it doesn't exceed a maximum size layout
+    const targetSize = Math.floor(minEdge * 0.7);
+    
+    // Explicitly returning identical width and height overrides the fallback rectangle behavior
+    return {
+      width: targetSize,
+      height: targetSize
+    };
+  };
+///end of addition
+
   //const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  const config = { fps: 15, qrbox: 250 };
+  const config = { 
+    fps: 15, 
+    qrbox: dynamicQrBox 
+  };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" },
