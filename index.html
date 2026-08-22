@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclipse Flight Crew License Portal</title>
+    <!-- Load the lightweight, cross-platform QR Scanner library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --brand-blue: #3b82f6;
+            --status-green: #22c55e;
+            --status-orange: #f97316;
+            --status-red: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .phone-container {
+            max-width: 450px;
+            width: 100%;
+            background-color: var(--bg-secondary);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Views configuration */
+        .view-step { display: none; }
+        .view-active { display: flex; flex-direction: column; }
+
+        h1 { font-size: 20px; font-weight: 700; margin: 0; text-align: center; color: var(--text-main); }
+        p { font-size: 13px; color: var(--text-muted); text-align: center; margin: 0 0 10px 0; line-height: 1.4; }
+
+        /* Scanner View Styles */
+        #reader {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background-color: #000;
+            border: 2px solid #334155 !important;
+            aspect-ratio: 1;
+        }
+
+        .status-badge {
+            padding: 12px;
+            border-radius: 12px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+
+        /* Loading View Styles */
+        .loader-spinner {
+            border: 4px solid #334155;
+            border-top: 4px solid var(--brand-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Dashboard View Styles */
+        .pilot-header {
+            background-color: #0f172a;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #334155;
+            text-align: left;
+        }
+        .pilot-name { font-size: 16px; font-weight: 700; color: #fff; text-transform: uppercase; }
+        .pilot-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        .status-banner {
+            border-radius: 16px;
+            padding: 18px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .ratings-card {
+            background: #0f172a;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            padding: 16px;
+        }
+        .ratings-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+        
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-name { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .item-date { font-size: 12px; text-align: right; }
+        .item-sub { font-size: 10px; font-weight: 700; margin-top: 2px; }
+
+        .disclaimer-box {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.4;
+            padding: 10px;
+            background-color: #0f172a;
+            border-radius: 10px;
+            border: 1px dashed #334155;
+        }
+
+        button.btn-primary {
+            background-color: var(--brand-blue);
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button.btn-primary:active { opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <!-- View 1: Scanner -->
+    <div id="view-scanner" class="view-step view-active">
+        <h1>License Scanner</h1>
+        <p>Align the CAAM Digital License QR code within the framing boundaries.</p>
+        <div id="reader"></div>
+        <div id="scanner-status" class="status-badge">Initializing back camera...</div>
+    </div>
+
+    <!-- View 2: Loading State -->
+    <div id="view-loading" class="view-step">
+        <h1>Downloading Data</h1>
+        <p>Bypassing security filters and fetching verified license structures directly from CAAM...</p>
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- View 3: Safety Dashboard -->
+    <div id="view-dashboard" class="view-step">
+        <div class="pilot-header">
+            <div id="dash-name" class="pilot-name">-</div>
+            <div id="dash-license" class="pilot-meta">-</div>
+        </div>
+
+        <div id="dash-banner" class="status-banner">CHECKING STATUS...</div>
+
+        <div class="ratings-card">
+            <div class="ratings-title">Qualifications List</div>
+            <div id="dash-list">
+                <!-- Programmatically populated lists of ratings -->
+            </div>
+        </div>
+
+        <div class="disclaimer-box">
+            <b>REMINDER : ALWAYS RE-CHECK AND VERIFY!</b><br>
+            Crew cross-checking is still required for flight dispatch operations.
+        </div>
+
+        <button class="btn-primary" onclick="resetToScanner()">Scan Another License</button>
+    </div>
+</div>
+
+<script>
+    // Configuration Variables
+    const PROXY_URL = "https://your-vercel-proxy-app.vercel.app/api/proxy"; // <-- Replace with your Vercel Proxy URL
+    const THRESHOLD = 30; // 30-day warning trigger limit
+    
+    const html5QrCode = new Html5Qrcode("reader");
+    const qrConfig = { fps: 15, qrbox: { width: 230, height: 230 } };
+
+    // --- Switch UI States ---
+    function showView(viewId) {
+        document.querySelectorAll('.view-step').forEach(v => v.classList.remove('view-active'));
+        document.getElementById(viewId).classList.add('view-active');
+    }
+
+    function resetToScanner() {
+        document.getElementById('dash-list').innerHTML = '';
+        showView('view-scanner');
+        startScanner();
+    }
+
+    // --- Auto-Initialize Camera (Locked to Back Lens) ---
+    function startScanner() {
+        const statusDiv = document.getElementById('scanner-status');
+        statusDiv.style.color = "var(--text-muted)";
+        statusDiv.innerText = "Status: Booting rear optics...";
+
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            qrConfig, 
+            (decodedText) => {
+                // Success: Stop camera and download target page
+                html5QrCode.stop().then(() => {
+                    if (decodedText.indexOf("eclipse.caam.gov.my") !== -1) {
+                        showView('view-loading');
+                        fetchLicenseData(decodedText);
+                    } else {
+                        alert("Invalid QR: Must be an official CAAM Digital License QR.");
+                        resetToScanner();
+                    }
+                });
+            }
+        ).then(() => {
+            statusDiv.innerText = "Status: Point at license badge QR code.";
+        }).catch(err => {
+            statusDiv.style.color = "var(--status-red)";
+            statusDiv.innerText = "Camera Error: Please grant camera access permissions.";
+        });
+    }
+
+    // --- Fetch CAAM HTML via Serverless CORS Proxy ---
+    function fetchLicenseData(caamUrl) {
+        const fetchUrl = PROXY_URL + "?url=" + encodeURIComponent(caamUrl) + "&_t=" + Date.now();
+        
+        fetch(fetchUrl)
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP Status " + res.status);
+                return res.text();
+            })
+            .then(html => {
+                parseAndBuildDashboard(html);
+            })
+            .catch(err => {
+                alert("Network Connection Error: Unable to fetch live license details. (" + err.message + ")");
+                resetToScanner();
+            });
+    }
+
+    // --- CORE LICENSE PARSING ENGINE (Grounding v12 Rules) ---
+    function parseAndBuildDashboard(html) {
+        // Parse raw string into virtual traversable DOM tree
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        // Helper: Page 2 Isolation
+        function isUnderPg2(el) {
+            if (!el) return false;
+            if (typeof el.closest === 'function') return el.closest('#pg2') !== null;
+            var curr = el;
+            while (curr) {
+                if (curr.id === 'pg2') return true;
+                curr = curr.parentElement;
+            }
+            return false;
+        }
+
+        // Helper: Fetch direct children of row (prevents nested layout bleeds)
+        function getDirectChildCells(tr) {
+            var cells = [];
+            if (tr && tr.children) {
+                for (var i = 0; i < tr.children.length; i++) {
+                    var child = tr.children[i];
+                    var tagName = child.tagName.toUpperCase();
+                    if (tagName === 'TD' || tagName === 'TH') cells.push(child);
+                }
+            }
+            if (cells.length === 0 && tr) {
+                var qcells = tr.querySelectorAll('td, th');
+                for (var j = 0; j < qcells.length; j++) cells.push(qcells[j]);
+            }
+            return cells;
+        }
+
+        // Helper: Translate Date Formats
+        function parseLicenseDate(dateStr) {
+            if (!dateStr) return null;
+            var trimmed = dateStr.trim();
+            if (trimmed.toUpperCase() === 'NO EXPIRY' || trimmed.toUpperCase() === 'NIL' || trimmed.toUpperCase() === 'NA') return null;
+            
+            var match = trimmed.match(/^(\d{1,2})\s+([a-zA-Z]{3,10})\s+(\d{4})$/);
+            if (!match) return null;
+            
+            var day = parseInt(match[1], 10);
+            var monthStr = match[2].toUpperCase();
+            var year = parseInt(match[3], 10);
+            
+            var months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            var monthsMalay = ["JAN", "FEB", "MAC", "APR", "MEI", "JUN", "JUL", "OGOS", "SEP", "OKT", "NOV", "DIS"];
+            
+            var monthIdx = months.indexOf(monthStr);
+            if (monthIdx === -1) monthIdx = monthsMalay.indexOf(monthStr);
+            if (monthIdx === -1) return null;
+            
+            return new Date(year, monthIdx, day);
+        }
+
+        // Helper: Check visual Red status
+        function isRedOrExpired(el) {
+            if (!el) return false;
+            var text = el.textContent.trim().toUpperCase();
+            if (text === 'EXPIRED') return true;
+            
+            var inlineStyle = (el.getAttribute('style') || '').toLowerCase();
+            if (inlineStyle.includes('color: red') || inlineStyle.includes('color:red') || 
+                inlineStyle.includes('color: #ff0000') || inlineStyle.includes('background: #ff0000') || 
+                inlineStyle.includes('background: red')) {
+                return true;
+            }
+            return false;
+        }
+
+        // Helper: Ignore non-qualification timestamps
+        function shouldIgnore(el) {
+            if (!el || isUnderPg2(el)) return true;
+            var text = el.textContent.trim();
+            if (!text) return true;
+            var upperText = text.toUpperCase();
+            
+            if (upperText.indexOf("INITIAL GRANT") !== -1 || /^\d{1,2}:\d{2}:\d{2}$/.test(text)) return true;
+            if (upperText.indexOf("7 DECEMBER 1944") !== -1 || upperText.indexOf("DECEMBER 1944") !== -1) return true;
+            
+            var curr = el;
+            for (var i = 0; i < 5; i++) {
+                if (!curr) break;
+                var tagName = curr.tagName.toUpperCase();
+                if (tagName === 'TABLE' || tagName === 'TBODY' || tagName === 'THEAD' || tagName === 'BODY' || tagName === 'HTML' || tagName === 'TR') break;
+                
+                if (tagName === 'DIV') {
+                    var className = (curr.className || '').toLowerCase();
+                    if (className.indexOf('row') !== -1 || className.indexOf('container') !== -1 || className.indexOf('col-') !== -1 || className.indexOf('card') !== -1) break;
+                }
+                
+                var currText = curr.textContent.toUpperCase();
+                if (currText.indexOf("DATE OF BIRTH") !== -1 || currText.indexOf("TARIKH LAHIR") !== -1 ||
+                    currText.indexOf("SIGNATURE OF ISSUING OFFICER") !== -1 || currText.indexOf("LAST SYNCHRONIZATION") !== -1) return true;
+                
+                curr = curr.parentElement;
+            }
+            return false;
+        }
+
+        // --- Extractor Core ---
+        var pilotName = "Unknown Pilot";
+        var pilotLicense = "License No: -";
+        
+        // Extract Personal Profile Details
+        var bodyText = doc.body.textContent;
+        var nameMatch = bodyText.match(/Full Name of Holder\s*\(Nama Penuh Pemegang\)\s*\n*([A-Za-z\s]+)/i) || 
+                        bodyText.match(/Full Name of Holder\s*\n*([A-Za-z\s]+)/i);
+        if (nameMatch) pilotName = nameMatch[1].trim();
+
+        var licMatch = bodyText.match(/Licence No\s*Nombor Lesen Baru\s*(\w+)/i) || 
+                       bodyText.match(/LICENCE NO\s*(\w+)/i);
+        if (licMatch) pilotLicense = "Licence No: " + licMatch[1].trim();
+
+        // Extract Qualifications
+        var qualificationData = {};
+        var refDate = new Date();
+
+        // Pass 1: Card Components
+        var cards = doc.querySelectorAll('.card');
+        cards.forEach(card => {
+            if (isUnderPg2(card)) return;
+            var cardText = card.textContent.toUpperCase();
+            
+            if (cardText.indexOf('MEDICAL EXPIRY DATE') !== -1 || cardText.indexOf('LICENCE TYPE') !== -1) return;
+            var cardNormalized = cardText.replace(/\s+/g, '');
+            if (cardNormalized.indexOf('CLASS1(SC)') !== -1) return; // Ignore Class 1(SC)
+
+            var titleEl = card.querySelector('.col-sm-12 .bg-gray-300') || card.querySelector('div[style*="font-weight: 500"]') || card.querySelector('.fs-5');
+            var labelText = titleEl ? titleEl.textContent.trim() : "";
+            var dateEl = card.querySelector('.text-uppercase b') || card.querySelector('.fs-4 b, .fs-3 b');
+            var dateText = dateEl ? dateEl.textContent.trim() : "";
+
+            if (labelText && dateText && !shouldIgnore(dateEl)) {
+                var key = labelText.toUpperCase().replace(/\s+/g, '');
+                var parsedDate = parseLicenseDate(dateText);
+                var isExpired = isRedOrExpired(dateEl) || cardText.indexOf('EXPIRED') !== -1;
+                registerQualification(key, labelText, dateText, parsedDate, isExpired);
+            }
+        });
+
+        // Pass 2: Tables
+        var rows = doc.querySelectorAll('tr');
+        rows.forEach(tr => {
+            if (isUnderPg2(tr)) return;
+            var rowText = tr.textContent.toUpperCase();
+            if (rowText.indexOf('LICENCE TYPE') !== -1 || rowText.indexOf('MEDICAL CLASS') !== -1 || rowText.indexOf('MEDICAL EXPIRY DATE') !== -1) return;
+            
+            var rowNormalized = rowText.replace(/\s+/g, '');
+            if (rowNormalized.indexOf('CLASS1(SC)') !== -1) return;
+
+            var tds = getDirectChildCells(tr);
+            var labelText = "";
+            for (var i = 0; i < tds.length; i++) {
+                var text = tds[i].textContent.replace('•', '').trim();
+                if (!text) continue;
+                if (!(/^\d{1,2}\s+[a-zA-Z]{3,10}\s+\d{4}$/.test(text) || text.toUpperCase() === 'NO EXPIRY')) {
+                    labelText = text;
+                    break;
+                }
+            }
+
+            if (!labelText) return;
+
+            tds.forEach(td => {
+                var text = td.textContent.trim();
+                var isDatePattern = /^\d{1,2}\s+[a-zA-Z]{3,10}\s+\d{4}$/.test(text) || text.toUpperCase() === 'NO EXPIRY';
+                if (isDatePattern && !shouldIgnore(td)) {
+                    var key = labelText.toUpperCase().replace(/\s+/g, '');
+                    var parsedDate = parseLicenseDate(text);
+                    var isExpired = isRedOrExpired(td) || isRedOrExpired(tr) || rowText.indexOf('EXPIRED') !== -1;
+                    registerQualification(key, labelText, text, parsedDate, isExpired);
+                }
+            });
+        });
+
+        function registerQualification(key, name, dateText, parsedDate, isExpired) {
+            name = name.replace('•', '').trim();
+            var status = "VALID";
+            var daysRemaining = null;
+
+            if (isExpired) {
+                status = "EXPIRED";
+            } else if (parsedDate) {
+                var diff = parsedDate.getTime() - refDate.getTime();
+                daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                if (diff < 0) status = "EXPIRED";
+                else if (daysRemaining <= THRESHOLD) status = "EXPIRING_SOON";
+            }
+
+            if (qualificationData[key] && qualificationData[key].status === "EXPIRED") return;
+
+            qualificationData[key] = { name, dateText, daysRemaining, status };
+        }
+
+        // --- Render UI Elements ---
+        document.getElementById('dash-name').innerText = pilotName;
+        document.getElementById('dash-license').innerText = pilotLicense;
+
+        var listContainer = document.getElementById('dash-list');
+        var overallStatus = "GREEN";
+        var hasExpired = false;
+        var hasWarning = false;
+
+        for (var k in qualificationData) {
+            var q = qualificationData[k];
+            var row = document.createElement('div');
+            row.className = 'item-row';
+
+            var nameSpan = document.createElement('span');
+            nameSpan.className = 'item-name';
+            nameSpan.innerText = q.name;
+
+            var dateBox = document.createElement('div');
+            dateBox.className = 'item-date';
+
+            var dateTextSpan = document.createElement('div');
+            dateTextSpan.style.fontWeight = "bold";
+            dateTextSpan.innerText = q.dateText;
+
+            var subSpan = document.createElement('div');
+            subSpan.className = 'item-sub';
+
+            if (q.status === "EXPIRED") {
+                hasExpired = true;
+                subSpan.innerText = "EXPIRED";
+                subSpan.style.color = "var(--status-red)";
+            } else if (q.status === "EXPIRING_SOON") {
+                hasWarning = true;
+                subSpan.innerText = q.daysRemaining + " days remaining";
+                subSpan.style.color = "var(--status-orange)";
+            } else {
+                subSpan.innerText = "VALID";
+                subSpan.style.color = "var(--status-green)";
+            }
+
+            dateBox.appendChild(dateTextSpan);
+            dateBox.appendChild(subSpan);
+            row.appendChild(nameSpan);
+            row.appendChild(dateBox);
+            listContainer.appendChild(row);
+        }
+
+        // Update Big Display Banner
+        var banner = document.getElementById('dash-banner');
+        if (hasExpired) {
+            banner.innerText = "🔴 DO NOT FLY!";
+            banner.style.backgroundColor = "var(--status-red)";
+        } else if (hasWarning) {
+            banner.innerText = "⚠️ FLY WITH CAUTION!";
+            banner.style.backgroundColor = "var(--status-orange)";
+        } else {
+            banner.innerText = "🟢 HAVE A SAFE FLIGHT!";
+            banner.style.backgroundColor = "var(--status-green)";
+        }
+
+        showView('view-dashboard');
+    }
+
+    // Auto launch scanner on page load
+    window.addEventListener("DOMContentLoaded", startScanner);
+</script>
+
+</body>
+</html>
