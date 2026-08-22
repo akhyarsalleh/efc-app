@@ -266,15 +266,23 @@ function parseLicenseDate(dateStr) {
 
 function isUnderPg2(el) {
   if (!el) return false;
+  if (typeof el.closest === 'function') {
+    const pgEl = el.closest('[id^="pg"]');
+    if (pgEl) {
+      const match = pgEl.id.match(/^pg(\d+)$/);
+      if (match) {
+        const pgNum = parseInt(match[1], 10);
+        if (pgNum >= 2) return true;
+      }
+    }
+  }
   let curr = el;
   while (curr) {
-    if (curr.id && /^pg([2-9]|\d{2,})$/.test(curr.id)) {
-      return true;
-    }
-    if (curr.className && typeof curr.className === 'string') {
-      const classes = curr.className.split(/\s+/);
-      if (classes.some(c => /^pg([2-9]|\d{2,})$/.test(c))) {
-        return true;
+    if (curr.id && typeof curr.id === 'string') {
+      const match = curr.id.match(/^pg(\d+)$/);
+      if (match) {
+        const pgNum = parseInt(match[1], 10);
+        if (pgNum >= 2) return true;
       }
     }
     curr = curr.parentElement;
@@ -485,6 +493,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   }
 
   // Extract License Type & License Number
+  let extractedFullType = "";
   for (let i = 0; i < allElements.length; i++) {
     if (isUnderPg2(allElements[i])) continue;
     const text = allElements[i].textContent.trim();
@@ -495,14 +504,14 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         if (tds.length > 1) {
           for (let j = 0; j < tds.length; j++) {
             if (tds[j] !== allElements[i] && tds[j].textContent.trim()) {
-              licenseType = tds[j].textContent.trim().replace(/\s+/g, ' ');
+              extractedFullType = tds[j].textContent.trim().replace(/\s+/g, ' ');
               break;
             }
           }
         } else {
           const nextTr = tr.nextElementSibling;
           if (nextTr) {
-            licenseType = nextTr.textContent.trim().replace(/\s+/g, ' ');
+            extractedFullType = nextTr.textContent.trim().replace(/\s+/g, ' ');
           }
         }
       }
@@ -527,6 +536,69 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
       }
     }
   }
+
+  // Dictionary mapping full license type names to standard abbreviations
+  function mapLicenseType(fullType) {
+    if (!fullType) return "";
+    const upper = fullType.toUpperCase().trim();
+    if (upper.includes("AIRLINE TRANSPORT PILOT LICENCE (A)") || upper === "ATPL(A)") return "ATPL(A)";
+    if (upper.includes("AIRLINE TRANSPORT PILOT LICENCE (H)") || upper === "ATPL(H)") return "ATPL(H)";
+    if (upper.includes("AIRLINE TRANSPORT PILOT LICENCE") || upper === "ATPL") return "ATPL";
+    if (upper.includes("COMMERCIAL PILOT LICENCE (A)") || upper === "CPL(A)") return "CPL(A)";
+    if (upper.includes("COMMERCIAL PILOT LICENCE (H)") || upper === "CPL(H)") return "CPL(H)";
+    if (upper.includes("COMMERCIAL PILOT LICENCE") || upper === "CPL") return "CPL";
+    if (upper.includes("PRIVATE PILOT LICENCE (A)") || upper === "PPL(A)") return "PPL(A)";
+    if (upper.includes("PRIVATE PILOT LICENCE (H)") || upper === "PPL(H)") return "PPL(H)";
+    if (upper.includes("PRIVATE PILOT LICENCE") || upper === "PPL") return "PPL";
+    if (upper.includes("MULTI-CREW PILOT LICENCE (A)") || upper === "MPL(A)") return "MPL(A)";
+    return fullType;
+  }
+
+  // Try to find the short licence type directly from the FCL table first
+  let shortLicenseType = "";
+  const tables = doc.querySelectorAll('table');
+  for (let t = 0; t < tables.length; t++) {
+    const table = tables[t];
+    if (isUnderPg2(table)) continue;
+    const headers = table.querySelectorAll('th, td');
+    let isFclTable = false;
+    let licenceTypeColIndex = -1;
+    
+    for (let h = 0; h < headers.length; h++) {
+      const headerText = headers[h].textContent.toUpperCase();
+      if (headerText.includes('LICENCE TYPE') || headerText.includes('JENIS LESEN')) {
+        isFclTable = true;
+        const tr = headers[h].closest('tr');
+        if (tr) {
+          const cells = Array.from(tr.querySelectorAll('td, th'));
+          licenceTypeColIndex = cells.indexOf(headers[h]);
+        }
+        break;
+      }
+    }
+    
+    if (isFclTable && licenceTypeColIndex !== -1) {
+      const rows = table.querySelectorAll('tr');
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        const cells = Array.from(row.querySelectorAll('td, th'));
+        if (cells.length > licenceTypeColIndex) {
+          const cellText = cells[licenceTypeColIndex].textContent.trim();
+          const upperCellText = cellText.toUpperCase();
+          if (upperCellText.includes('LICENCE TYPE') || upperCellText.includes('JENIS LESEN')) {
+            continue;
+          }
+          if (cellText && cellText.length < 15) {
+            shortLicenseType = cellText;
+            break;
+          }
+        }
+      }
+    }
+    if (shortLicenseType) break;
+  }
+
+  licenseType = shortLicenseType || mapLicenseType(extractedFullType);
 
   if (!licenseNo) {
     for (let i = 0; i < allElements.length; i++) {
