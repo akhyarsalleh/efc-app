@@ -114,11 +114,9 @@ function startScanner(isAutoStart = false) {
 
   // Fixed square bounds for a crisp 250x250 square container
   // We use 180x180 qrbox to provide a comfortable 35px scanning margin on all sides
-  // Omitting qrbox completely disables the library's rectangular overlay natively,
-  // allowing the full square camera frame to act as the scanning zone for faster detection!
   const config = { 
     fps: 15, 
-    aspectRatio: 1.0
+    qrbox: { width: 180, height: 180 } 
   };
 
   html5QrcodeScanner.start(
