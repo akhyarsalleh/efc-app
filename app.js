@@ -1,4 +1,4 @@
-// app.js - License Scanner App Client
+// app.js - License Scanner App Client (Version 6)
 
 // Configuration - Replace with your deployed Vercel URL
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
@@ -19,22 +19,19 @@ function initApp() {
   const scanNewBtn = document.getElementById("scan-new-btn");
   const openOriginalBtn = document.getElementById("open-original-btn");
 
-  if (startScanBtn) startScanBtn.addEventListener("click", startScanner);
+  if (startScanBtn) startScanBtn.addEventListener("click", () => startScanner(false));
   if (stopScanBtn) stopScanBtn.addEventListener("click", stopScanner);
   if (submitUrlBtn) submitUrlBtn.addEventListener("click", handleManualUrl);
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
 
-  // Auto-start scanner immediately on page load
+  // Auto-start scanner immediately on page load (tries to start silently)
   setTimeout(() => {
-    startScanner();
-  }, 150);
+    startScanner(true);
+  }, 300); // 300ms delay to ensure library is compiled and DOM is fully painted
 }
 
-// -----------------------------------------
-// UI Navigation / View State Management
-// -----------------------------------------
-
+// -----------------------------------------\n// UI Navigation / View State Management\n// -----------------------------------------\n
 function showView(viewId) {
   document.querySelectorAll(".app-view").forEach(view => {
     view.classList.add("hidden");
@@ -49,10 +46,10 @@ function showScannerView() {
   document.getElementById("manual-url-input").value = "";
   showView("scanner-view");
 
-  // Auto-start scanner immediately when returning to scanner view
+  // Auto-start scanner immediately when returning to scanner view (tries to start silently)
   setTimeout(() => {
-    startScanner();
-  }, 150);
+    startScanner(true);
+  }, 300);
 }
 
 function showLoading(msg = "Fetching digital license...") {
@@ -71,20 +68,40 @@ function showError(msg) {
   showView("scanner-view");
 }
 
-// -----------------------------------------
-// QR Scanner Controller
-// -----------------------------------------
+// -----------------------------------------\n// QR Scanner Controller\n// -----------------------------------------\n
+function startScanner(isAutoStart = false) {
+  const errMsgEl = document.getElementById("error-message");
+  if (errMsgEl) errMsgEl.innerText = "";
 
-function startScanner() {
-  document.getElementById("error-message").innerText = "";
+  // Check if library is loaded
+  if (typeof Html5Qrcode === 'undefined') {
+    if (!isAutoStart) {
+      showError("QR Scanner library is still loading. Please wait a moment and click 'Launch Camera'.");
+    }
+    return;
+  }
+
+  // Check for Secure Context (HTTPS requirement)
+  const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  if (!isLocalhost && window.location.protocol !== "https:") {
+    if (!isAutoStart) {
+      showError("Camera Access Blocked: Browsers require HTTPS to access the camera. Please access this app via HTTPS or test on localhost.");
+    }
+    return;
+  }
+
   const qrContainer = document.getElementById("qr-reader-container");
-  qrContainer.classList.remove("hidden");
+  if (qrContainer) qrContainer.classList.remove("hidden");
   
-  document.getElementById("start-scan-btn").classList.add("hidden");
-  document.getElementById("stop-scan-btn").classList.remove("hidden");
+  const startBtn = document.getElementById("start-scan-btn");
+  if (startBtn) startBtn.classList.add("hidden");
+  const stopBtn = document.getElementById("stop-scan-btn");
+  if (stopBtn) stopBtn.classList.remove("hidden");
 
-  // Initialize html5-qrcode
-  html5QrcodeScanner = new Html5Qrcode("qr-reader");
+  // Initialize html5-qrcode if not already done
+  if (!html5QrcodeScanner) {
+    html5QrcodeScanner = new Html5Qrcode("qr-reader");
+  }
   
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
     // Valid URL scanned
@@ -95,7 +112,12 @@ function startScanner() {
     }
   };
 
-  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+  // Fixed square bounds for a crisp 250x250 square container
+  // We use 180x180 qrbox to provide a comfortable 35px scanning margin on all sides
+  const config = { 
+    fps: 15, 
+    qrbox: { width: 180, height: 180 } 
+  };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" },
@@ -105,20 +127,36 @@ function startScanner() {
       // Direct scanning logs are chatty and can be ignored
     }
   ).catch(err => {
-    showError("Camera Access Failed: " + err);
+    console.warn("Scanner failed to start:", err);
+    // On autostart, we fail silently and let the user launch it manually
+    if (isAutoStart) {
+      stopScanner();
+    } else {
+      showError("Camera Access Failed: " + err);
+    }
   });
 }
 
 function stopScanner() {
+  const resetUI = () => {
+    html5QrcodeScanner = null;
+    const qrContainer = document.getElementById("qr-reader-container");
+    if (qrContainer) qrContainer.classList.add("hidden");
+    const startBtn = document.getElementById("start-scan-btn");
+    if (startBtn) startBtn.classList.remove("hidden");
+    const stopBtn = document.getElementById("stop-scan-btn");
+    if (stopBtn) stopBtn.classList.add("hidden");
+  };
+
   if (html5QrcodeScanner) {
-    html5QrcodeScanner.stop().then(() => {
-      html5QrcodeScanner = null;
-      document.getElementById("qr-reader-container").classList.add("hidden");
-      document.getElementById("start-scan-btn").classList.remove("hidden");
-      document.getElementById("stop-scan-btn").classList.add("hidden");
-    }).catch(err => {
-      console.warn("Failed to stop scanner cleanly:", err);
-    });
+    html5QrcodeScanner.stop()
+      .then(resetUI)
+      .catch(err => {
+        console.warn("Failed to stop scanner cleanly:", err);
+        resetUI(); // Force UI reset even if stop() fails
+      });
+  } else {
+    resetUI();
   }
 }
 
@@ -141,10 +179,7 @@ function openOriginalLicense() {
   }
 }
 
-// -----------------------------------------
-// License Fetch & Proxy Integration
-// -----------------------------------------
-
+// -----------------------------------------\n// License Fetch & Proxy Integration\n// -----------------------------------------\n
 async function processLicenseUrl(url) {
   lastScannedUrl = url;
   stopScanner();
@@ -173,10 +208,7 @@ async function processLicenseUrl(url) {
   }
 }
 
-// -----------------------------------------
-// UI Rendering of Results
-// -----------------------------------------
-
+// -----------------------------------------\n// UI Rendering of Results\n// -----------------------------------------\n
 function renderResults(results) {
   // Set Pilot profile details
   document.getElementById("pilot-name").innerText = results.pilotDetails.name || "N/A";
@@ -247,10 +279,7 @@ function renderResults(results) {
   showView("result-view");
 }
 
-// -----------------------------------------
-// Core Parsing Engine (Adapted from checker.js)
-// -----------------------------------------
-
+// -----------------------------------------\n// Core Parsing Engine (Adapted from checker.js)\n// -----------------------------------------\n
 function parseLicenseDate(dateStr) {
   if (!dateStr) return null;
   const trimmed = dateStr.trim();
@@ -276,16 +305,6 @@ function parseLicenseDate(dateStr) {
 
 function isUnderPg2(el) {
   if (!el) return false;
-  if (typeof el.closest === 'function') {
-    const pgEl = el.closest('[id^="pg"]');
-    if (pgEl) {
-      const match = pgEl.id.match(/^pg(\d+)$/);
-      if (match) {
-        const pgNum = parseInt(match[1], 10);
-        if (pgNum >= 2) return true;
-      }
-    }
-  }
   let curr = el;
   while (curr) {
     if (curr.id && typeof curr.id === 'string') {
@@ -293,6 +312,12 @@ function isUnderPg2(el) {
       if (match) {
         const pgNum = parseInt(match[1], 10);
         if (pgNum >= 2) return true;
+      }
+    }
+    if (curr.className && typeof curr.className === 'string') {
+      const classes = curr.className.split(/\s+/);
+      if (classes.some(c => /^pg([2-9]|\d{2,})$/.test(c))) {
+        return true;
       }
     }
     curr = curr.parentElement;
@@ -470,8 +495,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     };
   }
 
-  // --- Extract Pilot Details ---
-  let pilotName = "";
+  // --- Extract Pilot Details ---\n  let pilotName = "";
   let licenseType = "";
   let licenseNo = "";
 
@@ -479,10 +503,11 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   
   // Extract Pilot Name
   for (let i = 0; i < allElements.length; i++) {
-    if (isUnderPg2(allElements[i])) continue;
-    const text = allElements[i].textContent.toUpperCase();
+    const el = allElements[i];
+    if (isUnderPg2(el)) continue;
+    const text = el.textContent.toUpperCase();
     if (text.includes("FULL NAME OF HOLDER") || text.includes("NAMA PENUH PEMEGANG")) {
-      const tr = allElements[i].closest('tr');
+      const tr = el.closest('tr');
       if (tr) {
         const nextTr = tr.nextElementSibling;
         if (nextTr) {
@@ -492,7 +517,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         const tds = tr.querySelectorAll('td, th');
         if (tds.length > 1) {
           for (let j = 0; j < tds.length; j++) {
-            if (tds[j] !== allElements[i] && tds[j].textContent.trim()) {
+            if (tds[j] !== el && tds[j].textContent.trim()) {
               pilotName = tds[j].textContent.replace(/•/g, '').trim().replace(/\s+/g, ' ');
               break;
             }
@@ -505,15 +530,16 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   // Extract License Type & License Number
   let extractedFullType = "";
   for (let i = 0; i < allElements.length; i++) {
-    if (isUnderPg2(allElements[i])) continue;
-    const text = allElements[i].textContent.trim();
+    const el = allElements[i];
+    if (isUnderPg2(el)) continue;
+    const text = el.textContent.trim();
     if (text === "II") {
-      const tr = allElements[i].closest('tr');
+      const tr = el.closest('tr');
       if (tr) {
         const tds = tr.querySelectorAll('td, th');
         if (tds.length > 1) {
           for (let j = 0; j < tds.length; j++) {
-            if (tds[j] !== allElements[i] && tds[j].textContent.trim()) {
+            if (tds[j] !== el && tds[j].textContent.trim()) {
               extractedFullType = tds[j].textContent.trim().replace(/\s+/g, ' ');
               break;
             }
@@ -527,12 +553,12 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
       }
     }
     if (text === "III") {
-      const tr = allElements[i].closest('tr');
+      const tr = el.closest('tr');
       if (tr) {
         const tds = tr.querySelectorAll('td, th');
         if (tds.length > 1) {
           for (let j = 0; j < tds.length; j++) {
-            if (tds[j] !== allElements[i] && tds[j].textContent.trim()) {
+            if (tds[j] !== el && tds[j].textContent.trim()) {
               licenseNo = tds[j].textContent.replace(/LICENCE NO/gi, '').replace(/NOMBOR LESEN/gi, '').trim().replace(/\s+/g, ' ');
               break;
             }
@@ -612,10 +638,11 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
 
   if (!licenseNo) {
     for (let i = 0; i < allElements.length; i++) {
-      if (isUnderPg2(allElements[i])) continue;
-      const text = allElements[i].textContent.toUpperCase();
+      const el = allElements[i];
+      if (isUnderPg2(el)) continue;
+      const text = el.textContent.toUpperCase();
       if (text.includes("NOMBOR LESEN BARU") || text.includes("NEW LICENCE NO")) {
-        const nextTr = allElements[i].closest('tr')?.nextElementSibling;
+        const nextTr = el.closest('tr')?.nextElementSibling;
         if (nextTr) {
           licenseNo = nextTr.textContent.trim().replace(/\s+/g, ' ');
         }
@@ -623,8 +650,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     }
   }
 
-  // --- Pass 1: Card Extraction ---
-  const cards = doc.querySelectorAll('.card');
+  // --- Pass 1: Card Extraction ---\n  const cards = doc.querySelectorAll('.card');
   for (let i = 0; i < cards.length; i++) {
     const card = cards[i];
     if (isUnderPg2(card)) continue;
@@ -657,8 +683,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     }
   }
 
-  // --- Pass 2: Table Extraction ---
-  const rows = doc.querySelectorAll('tr');
+  // --- Pass 2: Table Extraction ---\n  const rows = doc.querySelectorAll('tr');
   for (let i = 0; i < rows.length; i++) {
     const tr = rows[i];
     if (isUnderPg2(tr)) continue;
@@ -690,8 +715,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     }
   }
 
-  // --- Pass 3: Fallbacks ---
-  const elements = doc.querySelectorAll('b, span, td, div, p, font, strong');
+  // --- Pass 3: Fallbacks ---\n  const elements = doc.querySelectorAll('b, span, td, div, p, font, strong');
   for (let i = 0; i < elements.length; i++) {
     const el = elements[i];
     if (isUnderPg2(el)) continue;
