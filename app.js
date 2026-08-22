@@ -1,4 +1,4 @@
-// app.js - License Scanner App Client
+// app.js - Licence Scanner App Client
 
 // Configuration - Replace with your deployed Vercel URL
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
@@ -45,7 +45,7 @@ function showScannerView() {
   showView("scanner-view");
 }
 
-function showLoading(msg = "Fetching digital license...") {
+function showLoading(msg = "Fetching digital licence...") {
   document.getElementById("loading-text").innerText = msg;
   showView("loading-view");
 }
@@ -139,7 +139,7 @@ function openOriginalLicense() {
 async function processLicenseUrl(url) {
   lastScannedUrl = url;
   stopScanner();
-  showLoading("Fetching digital license via proxy...");
+  showLoading("Fetching digital licence via proxy...");
 
   try {
     const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
@@ -150,7 +150,7 @@ async function processLicenseUrl(url) {
     }
 
     const htmlContent = await response.text();
-    showLoading("Parsing license qualifications...");
+    showLoading("Parsing licence qualifications...");
     
     // Parse using DOMParser
     const parser = new DOMParser();
@@ -205,7 +205,7 @@ function renderResults(results) {
   if (results.qualifications.length === 0) {
     container.innerHTML = `
       <div class="text-center text-slate-500 py-6">
-        No qualifications found on the scanned digital license.
+        No qualifications found on the scanned digital licence.
       </div>`;
   } else {
     results.qualifications.forEach(q => {
