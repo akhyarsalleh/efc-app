@@ -19,16 +19,11 @@ function initApp() {
   const scanNewBtn = document.getElementById("scan-new-btn");
   const openOriginalBtn = document.getElementById("open-original-btn");
 
-  if (startScanBtn) startScanBtn.addEventListener("click", () => startScanner(false));
+  if (startScanBtn) startScanBtn.addEventListener("click", startScanner);
   if (stopScanBtn) stopScanBtn.addEventListener("click", stopScanner);
   if (submitUrlBtn) submitUrlBtn.addEventListener("click", handleManualUrl);
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
-
-  // Auto-start scanner immediately on page load with a slight delay
-  setTimeout(() => {
-    startScanner(true);
-  }, 250);
 }
 
 // -----------------------------------------
@@ -48,11 +43,6 @@ function showScannerView() {
   document.getElementById("error-message").innerText = "";
   document.getElementById("manual-url-input").value = "";
   showView("scanner-view");
-
-  // Auto-start scanner immediately when returning to scanner view
-  setTimeout(() => {
-    startScanner(true);
-  }, 150);
 }
 
 function showLoading(msg = "Fetching digital license...") {
@@ -75,38 +65,16 @@ function showError(msg) {
 // QR Scanner Controller
 // -----------------------------------------
 
-function startScanner(isAutoStart = false) {
+function startScanner() {
   document.getElementById("error-message").innerText = "";
-
-  // Check if library is loaded
-  if (typeof Html5Qrcode === 'undefined') {
-    if (!isAutoStart) {
-      showError("QR Scanner library is still loading. Please wait a moment and click 'Launch Camera'.");
-    }
-    return;
-  }
-
-  // Check for Secure Context (HTTPS requirement)
-  const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-  if (!isLocalhost && window.location.protocol !== "https:") {
-    if (!isAutoStart) {
-      showError("Camera Access Blocked: Browsers require HTTPS to access the camera. Please access this app via HTTPS or test on localhost.");
-    }
-    return;
-  }
-
   const qrContainer = document.getElementById("qr-reader-container");
-  if (qrContainer) qrContainer.classList.remove("hidden");
+  qrContainer.classList.remove("hidden");
   
-  const startBtn = document.getElementById("start-scan-btn");
-  if (startBtn) startBtn.classList.add("hidden");
-  const stopBtn = document.getElementById("stop-scan-btn");
-  if (stopBtn) stopBtn.classList.remove("hidden");
+  document.getElementById("start-scan-btn").classList.add("hidden");
+  document.getElementById("stop-scan-btn").classList.remove("hidden");
 
   // Initialize html5-qrcode
-  if (!html5QrcodeScanner) {
-    html5QrcodeScanner = new Html5Qrcode("qr-reader");
-  }
+  html5QrcodeScanner = new Html5Qrcode("qr-reader");
   
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
     // Valid URL scanned
@@ -117,49 +85,30 @@ function startScanner(isAutoStart = false) {
     }
   };
 
-  // Omitting qrbox parameter removes the library's dark shaded overlays and corner bracket overlays completely!
-  // It gives a clean, edge-to-edge square camera viewport natively.
-  const config = { fps: 15 };
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
   html5QrcodeScanner.start(
-    { 
-      facingMode: "environment",
-      aspectRatio: { ideal: 1.0 } // Force square camera stream from the device hardware
-    },
+    { facingMode: "environment" },
     config,
     qrCodeSuccessCallback,
     (errorMessage) => {
       // Direct scanning logs are chatty and can be ignored
     }
   ).catch(err => {
-    console.warn("Scanner failed to start:", err);
-    stopScanner(); // Clean up UI state gracefully on rejection
-    if (!isAutoStart) {
-      showError("Camera Access Failed: " + err);
-    }
+    showError("Camera Access Failed: " + err);
   });
 }
 
 function stopScanner() {
-  const resetUI = () => {
-    html5QrcodeScanner = null;
-    const qrContainer = document.getElementById("qr-reader-container");
-    if (qrContainer) qrContainer.classList.add("hidden");
-    const startBtn = document.getElementById("start-scan-btn");
-    if (startBtn) startBtn.classList.remove("hidden");
-    const stopBtn = document.getElementById("stop-scan-btn");
-    if (stopBtn) stopBtn.classList.add("hidden");
-  };
-
   if (html5QrcodeScanner) {
-    html5QrcodeScanner.stop()
-      .then(resetUI)
-      .catch(err => {
-        console.warn("Failed to stop scanner cleanly:", err);
-        resetUI(); // Force reset even if the promise fails
-      });
-  } else {
-    resetUI();
+    html5QrcodeScanner.stop().then(() => {
+      html5QrcodeScanner = null;
+      document.getElementById("qr-reader-container").classList.add("hidden");
+      document.getElementById("start-scan-btn").classList.remove("hidden");
+      document.getElementById("stop-scan-btn").classList.add("hidden");
+    }).catch(err => {
+      console.warn("Failed to stop scanner cleanly:", err);
+    });
   }
 }
 
