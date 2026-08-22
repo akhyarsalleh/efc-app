@@ -1,7 +1,7 @@
 // app.js - License Scanner App Client
 
 // Configuration - Replace with your deployed Vercel URL
-const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
+const PROXY_URL = '/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Global state
@@ -266,12 +266,17 @@ function parseLicenseDate(dateStr) {
 
 function isUnderPg2(el) {
   if (!el) return false;
-  if (typeof el.closest === 'function') {
-    return el.closest('#pg2') !== null;
-  }
   let curr = el;
   while (curr) {
-    if (curr.id === 'pg2') return true;
+    if (curr.id && /^pg([2-9]|\d{2,})$/.test(curr.id)) {
+      return true;
+    }
+    if (curr.className && typeof curr.className === 'string') {
+      const classes = curr.className.split(/\s+/);
+      if (classes.some(c => /^pg([2-9]|\d{2,})$/.test(c))) {
+        return true;
+      }
+    }
     curr = curr.parentElement;
   }
   return false;
@@ -456,6 +461,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   
   // Extract Pilot Name
   for (let i = 0; i < allElements.length; i++) {
+    if (isUnderPg2(allElements[i])) continue;
     const text = allElements[i].textContent.toUpperCase();
     if (text.includes("FULL NAME OF HOLDER") || text.includes("NAMA PENUH PEMEGANG")) {
       const tr = allElements[i].closest('tr');
@@ -480,6 +486,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
 
   // Extract License Type & License Number
   for (let i = 0; i < allElements.length; i++) {
+    if (isUnderPg2(allElements[i])) continue;
     const text = allElements[i].textContent.trim();
     if (text === "II") {
       const tr = allElements[i].closest('tr');
@@ -523,6 +530,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
 
   if (!licenseNo) {
     for (let i = 0; i < allElements.length; i++) {
+      if (isUnderPg2(allElements[i])) continue;
       const text = allElements[i].textContent.toUpperCase();
       if (text.includes("NOMBOR LESEN BARU") || text.includes("NEW LICENCE NO")) {
         const nextTr = allElements[i].closest('tr')?.nextElementSibling;
