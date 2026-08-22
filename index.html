@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EFC Digital License Scanner</title>
+    <title>EFC Digital Licence Scanner</title>
     <!-- Tailwind CSS for mobile-responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- html5-qrcode library for QR scanning -->
@@ -18,7 +18,7 @@
         <!-- Header -->
         <header class="text-center py-4">
             <h1 class="text-2xl font-black text-blue-950 tracking-tight">eCLIPSE FCL Checker</h1>
-            <p class="text-xs font-semibold text-slate-500 mt-1">Online Digital License Verification</p>
+            <p class="text-xs font-semibold text-slate-500 mt-1">Online Digital Licence Verification</p>
         </header>
 
         <!-- Main Body -->
@@ -28,7 +28,7 @@
             <div id="scanner-view" class="app-view bg-white shadow-xl rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
                 <div class="text-center">
                     <h2 class="text-lg font-bold text-slate-900">Instructions</h2>
-                    <p class="text-xs text-slate-500 mt-1">Point your camera at the digital QR code on the pilot's license card to parse validity results.</p>
+                    <p class="text-xs text-slate-500 mt-1">Point your camera at the digital QR code on the pilot's licence card to parse validity results.</p>
                 </div>
 
                 <!-- QR Scanner Frame -->
@@ -57,7 +57,7 @@
 
                 <!-- Manual Form -->
                 <div class="flex flex-col gap-2">
-                    <input type="url" id="manual-url-input" placeholder="Paste license portal URL here..." class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+                    <input type="url" id="manual-url-input" placeholder="Paste licence portal URL here..." class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs">
                     <button id="submit-url-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-2xl transition duration-150 text-xs shadow-sm">
                         Verify Manual URL
                     </button>
@@ -78,7 +78,7 @@
                 
                 <!-- Verdict Header -->
                 <div class="bg-white shadow-xl rounded-3xl p-6 border border-slate-100 text-center flex flex-col items-center">
-                    <h2 id="result-header" class="text-xl font-black tracking-tight uppercase">License Evaluation</h2>
+                    <h2 id="result-header" class="text-xl font-black tracking-tight uppercase">Licence Evaluation</h2>
                     <div id="overall-status-badge" class="status-badge font-black uppercase rounded-full px-6 py-3 text-white inline-block text-xs tracking-wider mt-4 shadow-md">
                         HAVE A SAFE FLIGHT!
                     </div>
@@ -129,7 +129,7 @@
                 <div class="flex flex-col gap-2 mt-2">
                     <!--<button id="open-original-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-bold py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider">-->
                     <button id="open-original-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider shadow-md ">
-                        Proceed to License Page
+                        Proceed to Licence Page
                     </button>
                     <!--<button id="scan-new-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2">-->
                     <button id="scan-new-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-bold py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
