@@ -185,13 +185,16 @@ function renderResults(results) {
     statusBadge.innerText = "DO NOT FLY!";
     statusBadge.classList.add("bg-red-600");
     resultHeader.style.color = "#dc2626";
+    resultHeader.innerText = "Validity Expired / Invalid";
     overallMsg.innerText = "Qualification Expired / Invalid. One or more mandatory requirements have lapsed.";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
+    resultHeader.innerText = "#Validity Expiring Soon";
     overallMsg.innerText = "Qualification Expiring Soon. Take action on soon-to-expire credentials.";
   } else {
+    resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
     statusBadge.classList.add("bg-green-600");
     resultHeader.style.color = "#16a34a";
