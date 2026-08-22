@@ -11,6 +11,17 @@
     <style>
         .hidden { display: none !important; }
         .text-xxs { font-size: 0.65rem; }
+        /* Force both the camera video stream and the library's viewfinder canvas overlay */
+        /* to preserve their native aspect ratios while covering the square parent frame. */
+        #qr-reader video, #qr-reader canvas {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 1rem; /* Matches the rounded-2xl container */
+        }
+        #qr-reader {
+            border: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col justify-between">
@@ -93,16 +104,16 @@
                     <div class="flex flex-col gap-3">
                         <div>
                             <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Full Name</span>
-                            <span id="pilot-name" class="font-bold text-slate-900 text-base">-</span>
+                            <span id="pilot-name" class="font-bold text-slate-900 text-base">Jothiganesh Subramaniam</span>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Type</span>
-                                <span id="licence-type" class="font-bold text-slate-800 text-xs">-</span>
+                                <span id="licence-type" class="font-bold text-slate-800 text-xs">ATPL(A)</span>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Number</span>
-                                <span id="licence-number" class="font-bold text-slate-800 text-xs">-</span>
+                                <span id="licence-number" class="font-bold text-slate-800 text-xs">15333</span>
                             </div>
                         </div>
                     </div>
@@ -146,6 +157,6 @@
     </div>
 
     <!-- Inject scanning app behavior -->
-    <script src="app-v3.js"></script>
+    <script src="app-v10.js"></script>
 </body>
 </html>
