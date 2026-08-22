@@ -24,6 +24,11 @@ function initApp() {
   if (submitUrlBtn) submitUrlBtn.addEventListener("click", handleManualUrl);
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
+
+  // Auto-start scanner immediately on page load
+  setTimeout(() => {
+    startScanner();
+  }, 150);
 }
 
 // -----------------------------------------
@@ -43,6 +48,11 @@ function showScannerView() {
   document.getElementById("error-message").innerText = "";
   document.getElementById("manual-url-input").value = "";
   showView("scanner-view");
+
+  // Auto-start scanner immediately when returning to scanner view
+  setTimeout(() => {
+    startScanner();
+  }, 150);
 }
 
 function showLoading(msg = "Fetching digital license...") {
