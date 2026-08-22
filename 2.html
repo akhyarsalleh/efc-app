@@ -11,7 +11,7 @@
     <style>
         .hidden { display: none !important; }
         .text-xxs { font-size: 0.65rem; }
-        /* Style html5-qrcode video element to fill the square perfectly without distortion */
+        /* Style video feed to fill the square frame cleanly */
         #qr-reader video {
             object-fit: cover !important;
             width: 100% !important;
@@ -20,6 +20,15 @@
         }
         #qr-reader {
             border: none !important;
+        }
+        /* Custom dynamic laser line scanning animation */
+        @keyframes scan-laser {
+            0% { top: 5%; opacity: 0.3; }
+            50% { top: 95%; opacity: 1; }
+            100% { top: 5%; opacity: 0.3; }
+        }
+        .animate-scan-laser {
+            animation: scan-laser 2.5s infinite ease-in-out;
         }
     </style>
 </head>
@@ -41,8 +50,10 @@
                     <p class="text-xs text-slate-500 mt-1">Point your camera at the digital QR code on the pilot's license card to parse validity results.</p>
                 </div>
 
-                <!-- QR Scanner Frame (Centered Fixed Square of 250px x 250px) -->
-                <div id="qr-reader-container" class="hidden w-[250px] h-[250px] mx-auto overflow-hidden rounded-3xl bg-slate-950 flex items-center justify-center relative shadow-inner border border-slate-200">
+                <!-- QR Scanner Frame (Centered Fixed Square of 250px x 250px with Custom Glowing Laser Overlay) -->
+                <div id="qr-reader-container" class="hidden w-[250px] h-[250px] mx-auto overflow-hidden rounded-3xl bg-slate-950 flex items-center justify-center relative shadow-inner border-2 border-blue-500/50 shadow-blue-500/10">
+                    <!-- Premium scanning laser line -->
+                    <div class="absolute inset-x-4 h-0.5 bg-blue-500 shadow-[0_0_10px_#3b82f6] animate-scan-laser z-10 pointer-events-none rounded-full"></div>
                     <div id="qr-reader" class="w-full h-full"></div>
                 </div>
 
@@ -156,6 +167,6 @@
     </div>
 
     <!-- Inject scanning app behavior -->
-    <script src="app-v7.js"></script>
+    <script src="app-v8.js"></script>
 </body>
 </html>
