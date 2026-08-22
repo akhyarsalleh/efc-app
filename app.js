@@ -1,7 +1,7 @@
 // app.js - License Scanner App Client
 
 // Configuration - Replace with your deployed Vercel URL
-const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
+const PROXY_URL = '/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Global state
