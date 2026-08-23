@@ -86,7 +86,7 @@ function startScanner() {
   };
 
   //const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  const config = { fps: 30 };
+  const config = { fps: 60 };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" },
