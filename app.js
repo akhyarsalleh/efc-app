@@ -191,9 +191,9 @@ function renderResults(results) {
         // 1. Validity Expire Date / Main License (ATPL, CPL, PPL, MPL, etc.)
         if (
           (name.includes("VALIDITY") && !name.includes("ISSUE")) || 
-          name.includes("EXPIRE") || 
-          name.includes("EXPIRY") || 
-          name.includes("TAMAT") ||
+          //name.includes("EXPIRE") || 
+          //name.includes("EXPIRY") || 
+          //name.includes("TAMAT") ||
           //name.includes("LICENCE") ||
           //name.includes("LICENSE") ||
           name.includes("ATPL") ||
