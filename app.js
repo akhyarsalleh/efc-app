@@ -194,8 +194,8 @@ function renderResults(results) {
           name.includes("EXPIRE") || 
           name.includes("EXPIRY") || 
           name.includes("TAMAT") ||
-          name.includes("LICENCE") ||
-          name.includes("LICENSE") ||
+          //name.includes("LICENCE") ||
+          //name.includes("LICENSE") ||
           name.includes("ATPL") ||
           name.includes("CPL") ||
           name.includes("PPL") ||
