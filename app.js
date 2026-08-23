@@ -188,12 +188,18 @@ function renderResults(results) {
       const getRank = (nameStr) => {
         const name = (nameStr || "").toUpperCase().trim();
         
-        // 1. Validity Expire Date / Licence Validity (Broadened match)
+        // 1. Validity Expire Date / Main License (ATPL, CPL, PPL, MPL, etc.)
         if (
           (name.includes("VALIDITY") && !name.includes("ISSUE")) || 
           name.includes("EXPIRE") || 
           name.includes("EXPIRY") || 
-          name.includes("TAMAT")
+          name.includes("TAMAT") ||
+          name.includes("LICENCE") ||
+          name.includes("LICENSE") ||
+          name.includes("ATPL") ||
+          name.includes("CPL") ||
+          name.includes("PPL") ||
+          name.includes("MPL")
         ) {
           return 1;
         }
