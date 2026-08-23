@@ -750,9 +750,9 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
 
   return {
     pilotDetails: {
-      name: pilotName || "Unknown Pilot",
-      licenseType: licenseType || "Unknown Licence Type",
-      licenseNo: licenseNo || "Unknown Licence No"
+      name: pilotName || "-",
+      licenseType: licenseType || "-",
+      licenseNo: licenseNo || "-"
     },
     qualifications: qualificationsList,
     overallStatus,
