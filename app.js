@@ -183,36 +183,41 @@ function renderResults(results) {
   document.getElementById("licence-number").innerText = results.pilotDetails.licenseNo || "N/A";
 
   // --- SORT QUALIFICATIONS DYNAMICALLY ---
-  if (results.qualifications && results.qualifications.length > 0) {
+ if (results.qualifications && results.qualifications.length > 0) {
     results.qualifications.sort((a, b) => {
       const getRank = (nameStr) => {
         const name = (nameStr || "").toUpperCase().trim();
         
-        // 1. Validity Expire Date
-        if (name.includes("VALIDITY EXPIRE") || name.includes("EXPIRE DATE") || name.includes("TARIKH TAMAT")) {
+        // 1. Validity Expire Date / Licence Validity (Broadened match)
+        if (
+          (name.includes("VALIDITY") && !name.includes("ISSUE")) || 
+          name.includes("EXPIRE") || 
+          name.includes("EXPIRY") || 
+          name.includes("TAMAT")
+        ) {
           return 1;
         }
         // 2. Class 1 Medical
-        if (name.includes("CLASS 1") || name.includes("CLASS I") || name.includes("MEDICAL 1")) {
+        if (name.includes("CLASS 1") || name.includes("CLASS I") || name.includes("MEDICAL 1") || name.includes("MEDICAL I")) {
           return 2;
         }
         // 3. Class 2 Medical
-        if (name.includes("CLASS 2") || name.includes("CLASS II") || name.includes("MEDICAL 2")) {
+        if (name.includes("CLASS 2") || name.includes("CLASS II") || name.includes("MEDICAL 2") || name.includes("MEDICAL II")) {
           return 3;
         }
         // 4. RTOL / Radiotelephony
-        if (name.includes("RTOL") || name.includes("RADIOTELEPHONY") || name.includes("R/T") || name.includes("RADIO")) {
+        if (name.includes("RTOL") || name.includes("RADIOTELEPHONY") || name.includes("R/T") || name.includes("RADIO") || name.includes("TELEPHONY")) {
           return 4;
         }
         // 5. English Language Proficiency (ELP)
-        if (name.includes("ELP") || name.includes("ENGLISH") || name.includes("LANGUAGE PROFICIENCY")) {
+        if (name.includes("ELP") || name.includes("ENGLISH") || name.includes("LANGUAGE") || name.includes("PROFICIENCY")) {
           return 5;
         }
         // 7. Instrument Rating (IR) - Pushed to the absolute bottom
         if (name.includes("INSTRUMENT RATING") || name.includes("INSTRUMENT") || name === "IR") {
           return 7;
         }
-        // 6. Type Rating (e.g. A320, B737 - anything else that is not caught above)
+        // 6. Type Rating (Default fallback for airplane fleets like A320, B737)
         return 6;
       };
 
