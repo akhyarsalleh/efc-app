@@ -44,7 +44,7 @@ function showScannerView() {
   document.getElementById("manual-url-input").value = "";
 
   // Reset body background to original default Slate-50 when returning to scanner
-  document.body.classList.remove("bg-orange-400", "bg-red-500");
+  document.body.classList.remove("bg-green-300", "bg-orange-300", "bg-red-300");
   document.body.classList.add("bg-slate-50");
   
   showView("scanner-view");
@@ -249,28 +249,29 @@ function renderResults(results) {
 
   statusBadge.className = "status-badge font-bold uppercase rounded px-4 py-2 text-white inline-block text-lg mt-2";
 
-  document.body.classList.remove("bg-slate-50", "bg-orange-400", "bg-red-500");
+  // 1. Reset any previous dynamic body background colors to clear old scan states
+  document.body.classList.remove("bg-green-300", "bg-orange-300", "bg-red-300");
   
   if (results.overallStatus === "EXPIRED") {
     statusBadge.innerText = "DO NOT FLY!";
     statusBadge.classList.add("bg-red-600");
     resultHeader.style.color = "#dc2626";
     resultHeader.innerText = "Validity Expired / Invalid";
-    document.body.classList.add("bg-red-500"); 
+    document.body.classList.add("bg-red-300"); 
     overallMsg.innerText = "One or more qualification have lapsed.<br>Kindly contact Fleet Captains / Senior Instructor Pilots";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
-    document.body.classList.add("bg-orange-400");
+    document.body.classList.add("bg-orange-300");
     overallMsg.innerHTML = "One or more qualification is expiring soon.<br>Make sure they're valid until the end of daily or trip duties";
   } else {
     resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
     statusBadge.classList.add("bg-green-600");
     resultHeader.style.color = "#16a34a";
-    document.body.classList.add("bg-slate-50"); 
+    document.body.classList.add("bg-green-300"); 
     overallMsg.innerText = "All licence qualifications and medical checks are valid.";
   }
 
