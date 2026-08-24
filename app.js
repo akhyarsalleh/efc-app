@@ -258,14 +258,14 @@ function renderResults(results) {
     resultHeader.style.color = "#dc2626";
     resultHeader.innerText = "Validity Expired / Invalid";
     document.body.classList.add("bg-red-100"); 
-    overallMsg.innerHTML = "One or more qualification have lapsed.<br>Kindly contact Fleet Captains / SIPs";
+    overallMsg.innerHTML = "One or more qualifications have lapsed.<br>Kindly contact Fleet Captains / SIPs.";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
     document.body.classList.add("bg-orange-100");
-    overallMsg.innerHTML = "One or more qualification is expiring soon.<br>Make sure they're valid until the end of daily or trip duties";
+    overallMsg.innerHTML = "Some qualifications will expire soon.<br>Ensure they remain valid throughout the duty period.";
   } else {
     resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
