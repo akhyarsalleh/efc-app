@@ -44,7 +44,7 @@ function showScannerView() {
   document.getElementById("manual-url-input").value = "";
 
   // Reset body background to original default Slate-50 when returning to scanner
-  document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-200");
+  document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
   document.body.classList.add("bg-slate-50");
   
   showView("scanner-view");
@@ -250,15 +250,15 @@ function renderResults(results) {
   statusBadge.className = "status-badge font-bold uppercase rounded px-4 py-2 text-white inline-block text-lg mt-2";
 
   // 1. Reset any previous dynamic body background colors to clear old scan states
-  document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-200");
+  document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
   
   if (results.overallStatus === "EXPIRED") {
     statusBadge.innerText = "DO NOT FLY!";
     statusBadge.classList.add("bg-red-600");
     resultHeader.style.color = "#dc2626";
     resultHeader.innerText = "Validity Expired / Invalid";
-    document.body.classList.add("bg-red-200"); 
-    overallMsg.innerText = "One or more qualification have lapsed.<br>Kindly contact Fleet Captains / Senior Instructor Pilots";
+    document.body.classList.add("bg-red-100"); 
+    overallMsg.innerHTML = "One or more qualification have lapsed.<br>Kindly contact Fleet Captains / SIPs";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
@@ -272,7 +272,7 @@ function renderResults(results) {
     statusBadge.classList.add("bg-green-600");
     resultHeader.style.color = "#16a34a";
     document.body.classList.add("bg-green-100"); 
-    overallMsg.innerText = "All licence qualifications and medical checks are valid.";
+    overallMsg.innerHTML = "All licence qualifications and medical checks are valid.";
   }
 
   // Populate list of qualifications
