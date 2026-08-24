@@ -44,7 +44,7 @@ function showScannerView() {
   document.getElementById("manual-url-input").value = "";
 
   // Reset body background to original default Slate-50 when returning to scanner
-  document.body.classList.remove("bg-green-300", "bg-orange-300", "bg-red-300");
+  document.body.classList.remove("bg-green-200", "bg-orange-200", "bg-red-300");
   document.body.classList.add("bg-slate-50");
   
   showView("scanner-view");
@@ -84,7 +84,7 @@ function startScanner() {
   
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
     // Valid URL scanned
-    if (decodedText.startsWith("http://eclipse.caam.gov.my/") || decodedText.startsWith("https://eclipse.caam.gov.my/")) {
+    if (decodedText.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") || decodedText.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
       processLicenseUrl(decodedText);
     } else {
    //   showError("Invalid QR Code.<br>Please try again." + decodedText);
@@ -125,11 +125,11 @@ function stopScanner() {
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
-    showError("Please enter a valid <b>http://eclipse.caam.gov.my/</b> URL");
+    showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
     return;
   }
-  if (!urlInput.startsWith("http://eclipse.caam.gov.my") && !urlInput.startsWith("https://eclipse.caam.gov.my")) {
-    showError("Please enter a valid <br> <b>http://eclipse.caam.gov.my/</b> URL");
+  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
+    showError("Please enter a valid <br> https://eclipse.caam.gov.my/ URL");
     return;
   }
   processLicenseUrl(urlInput);
@@ -264,14 +264,14 @@ function renderResults(results) {
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
-    document.body.classList.add("bg-orange-300");
+    document.body.classList.add("bg-orange-200");
     overallMsg.innerHTML = "One or more qualification is expiring soon.<br>Make sure they're valid until the end of daily or trip duties";
   } else {
     resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
     statusBadge.classList.add("bg-green-600");
     resultHeader.style.color = "#16a34a";
-    document.body.classList.add("bg-green-300"); 
+    document.body.classList.add("bg-green-200"); 
     overallMsg.innerText = "All licence qualifications and medical checks are valid.";
   }
 
