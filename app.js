@@ -86,7 +86,9 @@ function startScanner() {
   };
 
   //const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  const config = { fps: 30, useBarCodeDetectorIfSupported: true };
+  const config = { fps: 30, experimentalFeatures: {
+    useBarCodeDetectorIfSupported: true // Offloads decoding to native OS hardware APIs
+  } };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" },
@@ -119,7 +121,7 @@ function handleManualUrl() {
     showError("Please enter a valid URL.");
     return;
   }
-  if (!urlInput.startsWith("http://") && !urlInput.startsWith("https://")) {
+  if (!urlInput.startsWith("http://eclipse.caam.gov.my") && !urlInput.startsWith("https://eclipse.caam.gov.my")) {
     showError("The URL must start with http:// or https://");
     return;
   }
