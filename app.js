@@ -255,6 +255,7 @@ function renderResults(results) {
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
+    document.body.style.backgroundColor = 'bg-orange-400'; //change bgcolor
     overallMsg.innerHTML = "One or more qualification is expiring soon.<br>Make sure they're valid until the end of daily or trip duties";
   } else {
     resultHeader.innerText = "Licence Valid";
