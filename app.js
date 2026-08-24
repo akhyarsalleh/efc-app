@@ -118,11 +118,11 @@ function stopScanner() {
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
-    showError("Please enter a valid URL.");
+    showError("Please enter a valid http://eclipse.caam.gov.my/ URL");
     return;
   }
   if (!urlInput.startsWith("http://eclipse.caam.gov.my") && !urlInput.startsWith("https://eclipse.caam.gov.my")) {
-    showError("The URL must start with http:// or https://");
+    showError("Please enter a valid http://eclipse.caam.gov.my/ URL");
     return;
   }
   processLicenseUrl(urlInput);
