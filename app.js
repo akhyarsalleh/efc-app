@@ -84,7 +84,7 @@ function startScanner() {
   
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
     // Valid URL scanned
-    if (decodedText.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") || decodedText.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
+    if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
       processLicenseUrl(decodedText);
     } else {
    //   showError("Invalid QR Code.<br>Please try again." + decodedText);
