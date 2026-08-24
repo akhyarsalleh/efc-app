@@ -272,7 +272,7 @@ function renderResults(results) {
     statusBadge.classList.add("bg-green-600");
     resultHeader.style.color = "#16a34a";
     document.body.classList.add("bg-green-100"); 
-    overallMsg.innerHTML = "All licence qualifications and medical checks are valid.";
+    overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
   // Populate list of qualifications
