@@ -83,7 +83,7 @@ function startScanner() {
       processLicenseUrl(decodedText);
     } else {
    //   showError("Invalid QR Code.<br>Please try again." + decodedText);
-      showError("Invalid QR Code.<br>Please try again.");
+      showError("Invalid QR code.<br>Please try again.");
     }
   };
 
@@ -120,11 +120,11 @@ function stopScanner() {
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
-    showError("Please enter a valid http://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid <b>http://eclipse.caam.gov.my/</b> URL");
     return;
   }
   if (!urlInput.startsWith("http://eclipse.caam.gov.my") && !urlInput.startsWith("https://eclipse.caam.gov.my")) {
-    showError("Please enter a valid <br> http://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid <br> <b>http://eclipse.caam.gov.my/</b> URL");
     return;
   }
   processLicenseUrl(urlInput);
@@ -143,7 +143,7 @@ function openOriginalLicense() {
 async function processLicenseUrl(url) {
   lastScannedUrl = url;
   stopScanner();
-  showLoading("Fetching digital licence via proxy...");
+  showLoading("Fetching digital licence...");
 
   try {
     const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
@@ -164,7 +164,8 @@ async function processLicenseUrl(url) {
     renderResults(results);
   } catch (error) {
     console.error("Processing error:", error);
-    showError(`Error processing digital license: ${error.message}. Please verify proxy is active.`);
+    //showError(`Error processing digital license: ${error.message}. Please verify proxy is active.`);
+    showError(`Error processing digital license:<br> ${error.message}.`);
   }
 }
 
@@ -248,13 +249,13 @@ function renderResults(results) {
     statusBadge.classList.add("bg-red-600");
     resultHeader.style.color = "#dc2626";
     resultHeader.innerText = "Validity Expired / Invalid";
-    overallMsg.innerText = "One or more mandatory requirements have lapsed.";
+    overallMsg.innerText = "One or more qualification have lapsed.<br>Kindly contact Fleet Captains / Senior Instructor Pilots";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
-    overallMsg.innerHTML = "Qualification Expiring Soon.<br>Take action on soon-to-expire credentials.";
+    overallMsg.innerHTML = "One or more qualification is expiring soon.<br>Make sure they're valid until the end of daily or trip duties";
   } else {
     resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
