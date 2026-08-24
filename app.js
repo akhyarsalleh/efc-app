@@ -244,7 +244,7 @@ function renderResults(results) {
     statusBadge.classList.add("bg-red-600");
     resultHeader.style.color = "#dc2626";
     resultHeader.innerText = "Validity Expired / Invalid";
-    overallMsg.innerText = "Qualification Expired / Invalid. One or more mandatory requirements have lapsed.";
+    overallMsg.innerText = "One or more mandatory requirements have lapsed.";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
