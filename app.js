@@ -250,7 +250,7 @@ function renderResults(results) {
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
-    overallMsg.innerText = "Qualification Expiring Soon.<br>Take action on soon-to-expire credentials.";
+    overallMsg.innerHTML = "Qualification Expiring Soon.<br>Take action on soon-to-expire credentials.";
   } else {
     resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
