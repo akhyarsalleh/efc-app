@@ -54,7 +54,8 @@ function showError(msg) {
   stopScanner();
   const errMsg = document.getElementById("error-message");
   if (errMsg) {
-    errMsg.innerText = msg;
+    //errMsg.innerText = msg;
+    errMsg.innerHTML = msg;
   } else {
     alert(msg);
   }
@@ -122,7 +123,7 @@ function handleManualUrl() {
     return;
   }
   if (!urlInput.startsWith("http://eclipse.caam.gov.my") && !urlInput.startsWith("https://eclipse.caam.gov.my")) {
-    showError("Please enter a valid http://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid <br> http://eclipse.caam.gov.my/ URL");
     return;
   }
   processLicenseUrl(urlInput);
