@@ -88,7 +88,7 @@ function startScanner() {
       processLicenseUrl(decodedText);
     } else {
    //   showError("Invalid QR Code.<br>Please try again." + decodedText);
-      showError("Invalid QR code.<br>Please try again.");
+      showError("Invalid QR code.<br>Please try again."+ decodedText);
     }
   };
 
