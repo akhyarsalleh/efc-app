@@ -5,7 +5,13 @@ const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if ho
 //const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Dynamic threshold state (loads saved user setting or defaults to 30 days)
-let currentThreshold = parseInt(localStorage.getItem("warning_threshold")) || 30;
+const THRESHOLD_PRESETS = [4, 7, 8]; // Allowed intervals
+
+// Global state
+let html5QrcodeScanner = null;
+let lastScannedUrl = "";
+let lastFetchedDoc = null; // Stores the active document DOM for instant rescanning
+let currentThreshold = parseInt(localStorage.getItem("warning_threshold")) || 30; // Defaults to 30
 
 // Global state
 let html5QrcodeScanner = null;
@@ -49,6 +55,7 @@ function showView(viewId) {
 
 function showScannerView() {
   stopScanner();
+  lastFetchedDoc = null; // Clear active pilot memory
   document.getElementById("error-message").innerText = "";
   document.getElementById("manual-url-input").value = "";
 
@@ -82,15 +89,24 @@ function setupThresholdSlider() {
   const label = document.getElementById("threshold-label");
   
   if (slider && label) {
-    // Set the slider to the active threshold loaded from localStorage/defaults
-    slider.value = currentThreshold;
+    // Locate current saved threshold index in presets (fall back to 30 days index [9] if missing)
+    const initialIndex = THRESHOLD_PRESETS.indexOf(currentThreshold);
+    slider.value = initialIndex !== -1 ? initialIndex : 2; 
     label.innerText = `${currentThreshold} Days`;
     
-    // Add real-time input listener to update the visible label
     slider.addEventListener("input", (e) => {
-      currentThreshold = parseInt(e.target.value);
+      const index = parseInt(e.target.value);
+      currentThreshold = THRESHOLD_PRESETS[index]; // Map range index (0-4) to actual days
+      
+      // Update the UI indicator instantly
       label.innerText = `${currentThreshold} Days`;
       localStorage.setItem("warning_threshold", currentThreshold);
+      
+      // INSTANT RESCAN: If we have a license already parsed, re-evaluate and render it now!
+      if (lastFetchedDoc) {
+        const reParsedResults = parseLicenseDOM(lastFetchedDoc, currentThreshold);
+        renderResults(reParsedResults);
+      }
     });
   }
 }
@@ -173,33 +189,35 @@ function openOriginalLicense() {
 // License Fetch & Proxy Integration
 // -----------------------------------------
 
-async function processLicenseUrl(url) {
-  lastScannedUrl = url;
-  stopScanner();
-  showLoading("Fetching digital licence...");
-
-  try {
-    const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
+async function processLicenseUrl(url) { 
+  lastScannedUrl = url; 
+  stopScanner(); 
+  showLoading("Fetching digital license via proxy...");
+  
+  try { 
+    const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`; 
     const response = await fetch(fetchUrl);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch license content (Status ${response.status})`);
+      throw new Error(`Failed to fetch license page (Status: ${response.status})`);
     }
 
-    const htmlContent = await response.text();
-    showLoading("Parsing licence qualifications...");
-    
-    // Parse using DOMParser
+    const htmlText = await response.text();
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
-    
-    const results = parseLicenseDOM(doc);
+    const doc = parser.parseFromString(htmlText, "text/html");
+
+    // === PASTE STEP 3 HERE ===
+    // Save the parsed document globally so the slider can instantly re-evaluate it
+    lastFetchedDoc = doc; 
+
+    // Run the parser with our active threshold
+    const results = parseLicenseDOM(doc, currentThreshold);
     renderResults(results);
-  } catch (error) {
-    console.error("Processing error:", error);
-    //showError(`Error processing digital license: ${error.message}. Please verify proxy is active.`);
-    showError(`Error processing digital license:<br> ${error.message}.`);
-  }
+
+  } catch (error) { 
+    console.error("Processing error:", error); 
+    showError(`Error processing digital license: ${error.message}.`); 
+  } 
 }
 
 // -----------------------------------------
