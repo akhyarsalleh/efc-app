@@ -275,39 +275,43 @@ function renderResults(results) {
     overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
-  // Populate list of qualifications
+// Populate list of qualifications
   const container = document.getElementById("qualifications-list");
   container.innerHTML = "";
 
   if (results.qualifications.length === 0) {
-    container.innerHTML = `
-      <div class="text-center text-slate-500 py-6">
-        No qualifications found on the scanned digital licence.
-      </div>`;
+    container.innerHTML = `<div class="text-center text-slate-500 py-6">No qualifications found on the scanned digital license.</div>`;
   } else {
     results.qualifications.forEach(q => {
       const qRow = document.createElement("div");
       qRow.className = "border-b border-slate-100 last:border-b-0 py-3 flex items-center justify-between";
+
+      // 1. Determine if the qualification is expired or expiring soon
+      const isUrgent = q.status === "EXPIRED" || q.status === "EXPIRING_SOON";
+
+      // 2. Set the weight and color styles dynamically based on the status
+      // We make expired/warning dates "font-bold text-slate-900" and keep valid dates normal weight
+      const dateWeightClass = isUrgent ? "font-bold text-slate-900" : "font-medium text-slate-500";
       
-      let statusHtml = "";
+      // 3. Define visual badges for different statuses to go next to the bold date
+      let statusBadgeHtml = "";
       if (q.status === "EXPIRED") {
-        statusHtml = `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Expired</span>`;
+        statusBadgeHtml = `<span class="text-[9px] bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded ml-2">EXPIRED</span>`;
       } else if (q.status === "EXPIRING_SOON") {
-        const daysLeft = q.daysRemaining === 1 ? "1 day left" : `${q.daysRemaining} days left`;
-        statusHtml = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded font-bold uppercase">${daysLeft}</span>`;
-      } else {
-        statusHtml = `<span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Valid</span>`;
+        statusBadgeHtml = `<span class="text-[9px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded ml-2">EXPIRING SOON</span>`;
       }
 
+      // 4. Populate row layout
       qRow.innerHTML = `
-        <div class="flex-grow pr-4">
-          <div class="font-semibold text-slate-800 text-sm md:text-base">${q.name}</div>
-          <div class="text-xs text-slate-500">Expiry: ${q.dateText || "No Expiry"}</div>
+        <div class="flex flex-col">
+          <span class="text-xs font-semibold text-slate-800">${q.name}</span>
         </div>
-        <div class="flex-shrink-0 text-right">
-          ${statusHtml}
+        <div class="text-right flex items-center justify-end">
+          <span class="text-xs ${dateWeightClass}">${q.dateText || "N/A"}</span>
+          ${statusBadgeHtml}
         </div>
       `;
+
       container.appendChild(qRow);
     });
   }
