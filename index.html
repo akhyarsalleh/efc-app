@@ -24,13 +24,13 @@
         <!-- Main Body -->
         <main class="flex-grow flex flex-col justify-center my-2">
 
-            <!-- Interactive Warning Threshold Settings (Hidden on launch by default) -->
-<details id="threshold-settings" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 max-w-md mx-auto w-full mb-4 overflow-hidden">
+            <!-- Interactive Warning Threshold Settings -->
+<!-- Interactive Warning Threshold Settings -->
+<details class="bg-white rounded-2xl shadow-sm border border-slate-100 max-w-md mx-auto w-full mb-4 overflow-hidden">
   <summary class="px-5 py-3.5 text-xs font-bold text-slate-700 flex justify-between items-center cursor-pointer select-none">
     <span class="flex items-center gap-1.5">⚙️ Adjust Warning Threshold</span>
     <span class="text-blue-600 font-extrabold bg-blue-50 px-2.5 py-0.5 rounded-full" id="threshold-label">30 Days</span>
   </summary>
-    
   <div class="px-5 pb-5 pt-2 border-t border-slate-50 flex flex-col gap-3">
     <!-- Steps 0 to 4 correspond to [4, 7, 8] days -->
     <input type="range" id="threshold-slider" min="0" max="4" step="1" value="2" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600">
