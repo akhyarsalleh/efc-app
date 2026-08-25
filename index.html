@@ -23,6 +23,20 @@
 
         <!-- Main Body -->
         <main class="flex-grow flex flex-col justify-center my-2">
+
+            <!-- Interactive Warning Threshold Settings -->
+<details class="bg-white rounded-2xl shadow-sm border border-slate-100 max-w-md mx-auto w-full mb-4 overflow-hidden">
+  <summary class="px-5 py-3.5 text-xs font-bold text-slate-700 flex justify-between items-center cursor-pointer select-none">
+    <span class="flex items-center gap-1.5">⚙️ Adjust Warning Threshold</span>
+    <span class="text-blue-600 font-extrabold bg-blue-50 px-2.5 py-0.5 rounded-full" id="threshold-label">30 Days</span>
+  </summary>
+  <div class="px-5 pb-5 pt-2 border-t border-slate-50 flex flex-col gap-3">
+    <input type="range" id="threshold-slider" min="7" max="90" value="30" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600">
+    <p class="text-[10px] text-slate-400 font-medium leading-relaxed">
+      Qualifications expiring within this number of days will trigger the amber "FLY WITH CAUTION!" status alert.
+    </p>
+  </div>
+</details>
             
             <!-- SCANNER VIEW -->
             <div id="scanner-view" class="app-view bg-white shadow-xl rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
