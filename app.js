@@ -45,12 +45,31 @@ function initApp() {
 // UI Navigation / View State Management
 // -----------------------------------------
 
-function showView(viewId) {
-  document.querySelectorAll(".app-view").forEach(view => {
-    view.classList.add("hidden");
-  });
-  const targetView = document.getElementById(viewId);
-  if (targetView) targetView.classList.remove("hidden");
+//function showView(viewId) {
+//  document.querySelectorAll(".app-view").forEach(view => {
+//    view.classList.add("hidden");
+//  });
+//  const targetView = document.getElementById(viewId);
+//  if (targetView) targetView.classList.remove("hidden");
+//}
+
+function showView(viewId) { 
+  document.querySelectorAll(".app-view").forEach(view => { 
+    view.classList.add("hidden"); 
+  }); 
+  const targetView = document.getElementById(viewId); 
+  if (targetView) targetView.classList.remove("hidden"); 
+
+  // --- TOGGLE SLIDER OPTIONS BOX ---
+  const thresholdSettings = document.getElementById("threshold-settings");
+  if (thresholdSettings) {
+    // Only display the slider when viewing parsed results
+    if (viewId === "result-view") {
+      thresholdSettings.classList.remove("hidden");
+    } else {
+      thresholdSettings.classList.add("hidden");
+    }
+  }
 }
 
 function showScannerView() {
