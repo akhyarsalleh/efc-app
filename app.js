@@ -2,7 +2,10 @@
 
 // Configuration - Replace with your deployed Vercel URL
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
-const DEFAULT_THRESHOLD = 30; // Days warning threshold
+//const DEFAULT_THRESHOLD = 30; // Days warning threshold
+
+// Dynamic threshold state (loads saved user setting or defaults to 30 days)
+let currentThreshold = parseInt(localStorage.getItem("warning_threshold")) || 30;
 
 // Global state
 let html5QrcodeScanner = null;
@@ -24,6 +27,12 @@ function initApp() {
   if (submitUrlBtn) submitUrlBtn.addEventListener("click", handleManualUrl);
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
+
+  if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense); //threshold slider
+  
+  // Initialize the warning threshold slider
+  setupThresholdSlider();
+  
 }
 
 // -----------------------------------------
@@ -65,6 +74,25 @@ function showError(msg) {
     alert(msg);
   }
   showView("scanner-view");
+}
+
+// Initialize and manage the slider interface
+function setupThresholdSlider() {
+  const slider = document.getElementById("threshold-slider");
+  const label = document.getElementById("threshold-label");
+  
+  if (slider && label) {
+    // Set the slider to the active threshold loaded from localStorage/defaults
+    slider.value = currentThreshold;
+    label.innerText = `${currentThreshold} Days`;
+    
+    // Add real-time input listener to update the visible label
+    slider.addEventListener("input", (e) => {
+      currentThreshold = parseInt(e.target.value);
+      label.innerText = `${currentThreshold} Days`;
+      localStorage.setItem("warning_threshold", currentThreshold);
+    });
+  }
 }
 
 // -----------------------------------------
@@ -496,7 +524,8 @@ function isRedOrExpired(el) {
   return false;
 }
 
-function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
+//function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
+function parseLicenseDOM(doc, daysThreshold = currentThreshold) { //slider threshold
   const refDate = new Date();
   const qualificationData = {};
   
