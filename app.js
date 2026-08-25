@@ -275,7 +275,7 @@ function renderResults(results) {
     overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
-  // Populate list of qualifications
+// Populate list of qualifications
   const container = document.getElementById("qualifications-list");
   container.innerHTML = "";
 
@@ -288,9 +288,6 @@ function renderResults(results) {
     results.qualifications.forEach(q => {
       const qRow = document.createElement("div");
       qRow.className = "border-b border-slate-100 last:border-b-0 py-3 flex items-center justify-between";
-
-	const isUrgent = q.status === "EXPIRED" || q.status === "EXPIRING_SOON";
-	const dateWeightClass = isUrgent ? "font-bold" : "font-medium";
       
       let statusHtml = "";
       if (q.status === "EXPIRED") {
@@ -305,7 +302,7 @@ function renderResults(results) {
       qRow.innerHTML = `
         <div class="flex-grow pr-4">
           <div class="font-semibold text-slate-800 text-sm md:text-base">${q.name}</div>
-          <div class="text-xs text-slate-500">Expiry: <span class=“${dateWeightClass}”>${q.dateText || "No Expiry”}</span></div>
+          <div class="text-xs text-slate-500">Expiry: ${q.dateText || "No Expiry"}</div>
         </div>
         <div class="flex-shrink-0 text-right">
           ${statusHtml}
