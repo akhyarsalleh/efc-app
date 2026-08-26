@@ -1,11 +1,7 @@
-// app.js - Licence Scanner App Client
-
+// app_test.js - Licence Scanner App Client with Offline History
 // Configuration - Replace with your deployed Vercel URL
-const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
+const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
-
-// At top of app.js
-let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 
 // Global state
 let html5QrcodeScanner = null;
@@ -30,16 +26,14 @@ function initApp() {
   if (submitUrlBtn) submitUrlBtn.addEventListener("click", handleManualUrl);
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
-  
+
   // --- SUGGESTION 7: Initial render of cached list ---
   renderHistoryList();
-  
 }
 
 // -----------------------------------------
 // UI Navigation / View State Management
 // -----------------------------------------
-
 function showView(viewId) {
   document.querySelectorAll(".app-view").forEach(view => {
     view.classList.add("hidden");
@@ -52,23 +46,20 @@ function showView(viewId) {
   if (historyDetails) historyDetails.removeAttribute("open");
 }
 
-
 function showScannerView() {
   stopScanner();
   document.getElementById("error-message").innerText = "";
   document.getElementById("manual-url-input").value = "";
-
   // Reset body background to original default Slate-50 when returning to scanner
   document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
   document.body.classList.add("bg-slate-50");
-  
+
   // --- SUGGESTION 7: Refresh list display ---
   renderHistoryList();
-  
   showView("scanner-view");
 }
 
-function showLoading(msg = "Fetching digital licence...") {
+function showLoading(msg = "Fetching digital license...") {
   document.getElementById("loading-text").innerText = msg;
   showView("loading-view");
 }
@@ -77,7 +68,6 @@ function showError(msg) {
   stopScanner();
   const errMsg = document.getElementById("error-message");
   if (errMsg) {
-    //errMsg.innerText = msg;
     errMsg.innerHTML = msg;
   } else {
     alert(msg);
@@ -98,6 +88,7 @@ function saveToHistory(results, originalUrl) {
     resultsData: results,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
+
   scanHistory = scanHistory.filter(item => item.id !== record.id);
   scanHistory.unshift(record);
   if (scanHistory.length > 10) scanHistory.pop();
@@ -109,7 +100,9 @@ function renderHistoryList() {
   const container = document.getElementById("history-list");
   if (!container) return;
   if (scanHistory.length === 0) {
-    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans.</div>`;
+    container.innerHTML = `
+      <div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>
+    `;
     return;
   }
 
@@ -119,7 +112,7 @@ function renderHistoryList() {
       <div onclick="loadHistoricalRecord('${item.id}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">${item.licenseType} • ${item.timestamp}</span>
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType} • Scanned at ${item.timestamp}</span>
         </div>
         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
@@ -132,55 +125,51 @@ window.loadHistoricalRecord = function(id) {
   if (match) {
     lastScannedUrl = match.url; // Ensures "Open Original" button works
     renderResults(match.resultsData);
-  }  
+  }
 };
 
-function clearHistory() {
+window.clearHistory = function() {
   if (confirm("Are you sure you want to clear all recent compliance checks from this device?")) {
     scanHistory = []; // Wipe the global array
-    localStorage.removeItem("scan_history"); // Wipe the local storage
+    localStorage.removeItem("scan_history"); // Wipe local storage
     renderHistoryList(); // Refresh the UI instantly
   }
-}
-
+};
 
 // -----------------------------------------
 // QR Scanner Controller
 // -----------------------------------------
-
 function startScanner() {
   document.getElementById("error-message").innerText = "";
   const qrContainer = document.getElementById("qr-reader-container");
   qrContainer.classList.remove("hidden");
-  
   document.getElementById("start-scan-btn").classList.add("hidden");
   document.getElementById("stop-scan-btn").classList.remove("hidden");
 
   // Initialize html5-qrcode
   html5QrcodeScanner = new Html5Qrcode("qr-reader");
-  
+
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
     // Valid URL scanned
     if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
       processLicenseUrl(decodedText);
     } else {
-   //   showError("Invalid QR Code.<br>Please try again." + decodedText);
-      showError("Invalid Eclipse QR code.<br>Please try again.");
+      showError("Invalid Eclipse QR code. Please try again.");
     }
   };
 
-  //const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  const config = { fps: 30, experimentalFeatures: {
-    useBarCodeDetectorIfSupported: true // Offloads decoding to native OS hardware APIs
-  } };
+  const config = { 
+    fps: 30, 
+    experimentalFeatures: { 
+      useBarCodeDetectorIfSupported: true // Offloads decoding to native hardware APIs
+    } 
+  };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" },
     config,
     qrCodeSuccessCallback,
-    (errorMessage) => {
-      // Direct scanning logs are chatty and can be ignored
-    }
+    (errorMessage) => { /* Ignore chatty scanning streams */ }
   ).catch(err => {
     showError("Camera Access Failed: " + err);
   });
@@ -206,7 +195,7 @@ function handleManualUrl() {
     return;
   }
   if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-    showError("Please enter a valid <br> https://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
     return;
   }
   processLicenseUrl(urlInput);
@@ -221,71 +210,47 @@ function openOriginalLicense() {
 // -----------------------------------------
 // License Fetch & Proxy Integration
 // -----------------------------------------
-
 async function processLicenseUrl(url) {
   lastScannedUrl = url;
   stopScanner();
-  showLoading("Fetching digital license via...");
-  
+  showLoading("Fetching digital license via proxy...");
   try {
-    // FIX: Backticks correctly applied here
     const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
     const response = await fetch(fetchUrl);
-    
     if (!response.ok) {
       throw new Error(`Failed to fetch license page (Status: ${response.status})`);
     }
-
     const htmlText = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, "text/html");
-
     const results = parseLicenseDOM(doc, DEFAULT_THRESHOLD);
     
     // --- SUGGESTION 7: Cache parsed DOM results onto the device ---
     saveToHistory(results, url);
-    
     renderResults(results);
-
   } catch (error) {
     console.error("Processing error:", error);
-    // FIX: String wrapped in proper template literal backticks
-    showError(`Error processing digital license: <br>${error.message}.`);
+    showError(`Error processing digital license: ${error.message}.`);
   }
 }
 
 // -----------------------------------------
 // UI Rendering of Results
 // -----------------------------------------
-
-//amendment
-//function renderResults(results) {
-  // Set Pilot profile details
-  //document.getElementById("pilot-name").innerText = results.pilotDetails.name || "N/A";
-  //document.getElementById("licence-type").innerText = results.pilotDetails.licenseType || "N/A";
-  //document.getElementById("licence-number").innerText = results.pilotDetails.licenseNo || "N/A";
-//end of amendment
-
 function renderResults(results) {
-  // Set Pilot profile details [1]
+  // Set Pilot profile details
   document.getElementById("pilot-name").innerText = results.pilotDetails.name || "N/A";
   document.getElementById("licence-type").innerText = results.pilotDetails.licenseType || "N/A";
   document.getElementById("licence-number").innerText = results.pilotDetails.licenseNo || "N/A";
 
   // --- SORT QUALIFICATIONS DYNAMICALLY ---
- if (results.qualifications && results.qualifications.length > 0) {
+  if (results.qualifications && results.qualifications.length > 0) {
     results.qualifications.sort((a, b) => {
       const getRank = (nameStr) => {
         const name = (nameStr || "").toUpperCase().trim();
-        
         // 1. Validity Expire Date / Main License (ATPL, CPL, PPL, MPL, etc.)
         if (
-          (name.includes("VALIDITY") && !name.includes("ISSUE")) || 
-          //name.includes("EXPIRE") || 
-          //name.includes("EXPIRY") || 
-          //name.includes("TAMAT") ||
-          //name.includes("LICENCE") ||
-          //name.includes("LICENSE") ||
+          (name.includes("VALIDITY") && !name.includes("ISSUE")) ||
           name.includes("ATPL") ||
           name.includes("CPL") ||
           name.includes("PPL") ||
@@ -316,86 +281,77 @@ function renderResults(results) {
         // 6. Type Rating (Default fallback for airplane fleets like A320, B737)
         return 6;
       };
-
       return getRank(a.name) - getRank(b.name);
     });
   }
-//end of new amendment
-  
+
   // Set Overall Status Badge & Title Styling
   const statusBadge = document.getElementById("overall-status-badge");
   const resultHeader = document.getElementById("result-header");
   const overallMsg = document.getElementById("overall-message");
 
   statusBadge.className = "status-badge font-bold uppercase rounded px-4 py-2 text-white inline-block text-lg mt-2";
-
-  // 1. Reset any previous dynamic body background colors to clear old scan states
-  document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
   
+  // Reset previous background colors
+  document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
+
   if (results.overallStatus === "EXPIRED") {
     statusBadge.innerText = "DO NOT FLY!";
     statusBadge.classList.add("bg-red-600");
     resultHeader.style.color = "#dc2626";
     resultHeader.innerText = "Validity Expired / Invalid";
-    document.body.classList.add("bg-red-100"); 
-    overallMsg.innerHTML = "One or more qualifications have lapsed.<br>Kindly contact Fleet Captains / SIPs.";
+    document.body.classList.add("bg-red-100");
+    overallMsg.innerHTML = "One or more qualifications have lapsed. Kindly contact Fleet Captains / SIPs.";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
     document.body.classList.add("bg-orange-100");
-    overallMsg.innerHTML = "Some qualifications will expire soon.<br>Ensure they remain valid throughout the duty period.";
+    overallMsg.innerHTML = "Some qualifications will expire soon. Ensure they remain valid throughout the duty period.";
   } else {
     resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
     statusBadge.classList.add("bg-green-600");
     resultHeader.style.color = "#16a34a";
-    document.body.classList.add("bg-green-100"); 
+    document.body.classList.add("bg-green-100");
     overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
-// Populate list of qualifications
+  // Populate list of qualifications
   const container = document.getElementById("qualifications-list");
   container.innerHTML = "";
   if (results.qualifications.length === 0) {
-    // FIX: Replaced raw HTML syntax with template literal string
     container.innerHTML = `<div class="text-center text-slate-500 py-6"> No qualifications found on the scanned digital license. </div>`;
   } else {
     results.qualifications.forEach(q => {
       const qRow = document.createElement("div");
       qRow.className = "border-b border-slate-100 last:border-b-0 py-3 flex items-center justify-between";
-      
       let statusHtml = "";
       if (q.status === "EXPIRED") {
-        statusHtml = `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Expired</span>`;
+        statusHtml = `<span class="text-xxs font-black text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-md">Expired</span>`;
       } else if (q.status === "EXPIRING_SOON") {
         const daysLeft = q.daysRemaining === 1 ? "1 day left" : `${q.daysRemaining} days left`;
-        statusHtml = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded font-bold uppercase">${daysLeft}</span>`;
+        statusHtml = `<span class="text-xxs font-black text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md">${daysLeft}</span>`;
       } else {
-        statusHtml = `<span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Valid</span>`;
+        statusHtml = `<span class="text-xxs font-black text-green-600 bg-green-50 border border-green-200 px-2.5 py-1 rounded-md">Valid</span>`;
       }
-
       qRow.innerHTML = `
-        <div class="flex-grow pr-4">
-          <div class="font-semibold text-slate-800 text-sm md:text-base">${q.name}</div>
-          <div class="text-xs text-slate-500">Expiry: ${q.dateText || "No Expiry"}</div>
-        </div>
-        <div class="flex-shrink-0 text-right">
+        <span class="text-xs font-semibold text-slate-800">${q.name}</span>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-medium text-slate-500">Expiry: ${q.dateText || "No Expiry"}</span>
           ${statusHtml}
         </div>
       `;
       container.appendChild(qRow);
     });
   }
-
   showView("result-view");
 }
 
 // -----------------------------------------
 // Core Parsing Engine (Adapted from checker.js)
 // -----------------------------------------
-
 function parseLicenseDate(dateStr) {
   if (!dateStr) return null;
   const trimmed = dateStr.trim();
@@ -407,10 +363,10 @@ function parseLicenseDate(dateStr) {
   const day = parseInt(match[1], 10);
   const monthStr = match[2].toUpperCase();
   const year = parseInt(match[3], 10);
-  
+
   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const monthsMalay = ["JAN", "FEB", "MAC", "APR", "MEI", "JUN", "JUL", "OGOS", "SEP", "OKT", "NOV", "DIS"];
-  
+
   let monthIdx = months.indexOf(monthStr);
   if (monthIdx === -1) {
     monthIdx = monthsMalay.indexOf(monthStr);
@@ -419,33 +375,30 @@ function parseLicenseDate(dateStr) {
   return new Date(year, monthIdx, day);
 }
 
-function isUnderPg2(el) { 
-  if (!el) return false; 
-  if (typeof el.closest === 'function') { 
-    const pgEl = el.closest('[id^="pg"]'); 
-    if (pgEl) { 
-      // FIX: Space removed before the end-of-string ($) anchor
+function isUnderPg2(el) {
+  if (!el) return false;
+  if (typeof el.closest === 'function') {
+    const pgEl = el.closest('[id^="pg"]');
+    if (pgEl) {
       const match = pgEl.id.match(/^pg(\d+)$/);
-      if (match) { 
-        const pgNum = parseInt(match[1], 10); 
-        if (pgNum >= 2) return true; 
-      } 
-    } 
-  } 
-  
-  let curr = el; 
-  while (curr) { 
-    if (curr.id && typeof curr.id === 'string') { 
-      // FIX: Space removed before the end-of-string ($) anchor
-      const match = curr.id.match(/^pg(\d+)$/); 
-      if (match) { 
-        const pgNum = parseInt(match[1], 10); 
-        if (pgNum >= 2) return true; 
-      } 
-    } 
-    curr = curr.parentElement; 
-  } 
-  return false; 
+      if (match) {
+        const pgNum = parseInt(match[1], 10);
+        if (pgNum >= 2) return true;
+      }
+    }
+  }
+  let curr = el;
+  while (curr) {
+    if (curr.id && typeof curr.id === 'string') {
+      const match = curr.id.match(/^pg(\d+)$/);
+      if (match) {
+        const pgNum = parseInt(match[1], 10);
+        if (pgNum >= 2) return true;
+      }
+    }
+    curr = curr.parentElement;
+  }
+  return false;
 }
 
 function getDirectChildCells(tr) {
@@ -487,18 +440,15 @@ function shouldIgnore(el) {
   const text = el.textContent.trim();
   if (!text) return true;
   const upperText = text.toUpperCase();
-
   if (upperText.includes("INITIAL GRANT") || upperText.includes("INITIAL_GRANT")) {
     return true;
   }
-  if (upperText.includes("7 DECEMBER 1944") || upperText.includes("7 DISEMBER 1944") || 
-      upperText.includes("DECEMBER 1944") || upperText.includes("DISEMBER 1944")) {
+  if (upperText.includes("7 DECEMBER 1944") || upperText.includes("7 DISEMBER 1944") || upperText.includes("DECEMBER 1944") || upperText.includes("DISEMBER 1944")) {
     return true;
   }
   if (/\d{1,2}:\d{2}:\d{2}/.test(text)) {
     return true;
   }
-
   let curr = el;
   for (let i = 0; i < 5; i++) {
     if (!curr) break;
@@ -508,8 +458,7 @@ function shouldIgnore(el) {
     }
     if (tagName === 'DIV') {
       const className = (curr.className || '').toLowerCase();
-      if (className.includes('row') || className.includes('container') || 
-          className.includes('col-') || className.includes('card')) {
+      if (className.includes('row') || className.includes('container') || className.includes('col-') || className.includes('card')) {
         break;
       }
     }
@@ -531,7 +480,6 @@ function shouldIgnore(el) {
     }
     curr = curr.parentElement;
   }
-
   const tr = el.closest('tr');
   if (tr) {
     const rowText = tr.textContent.toUpperCase();
@@ -560,17 +508,8 @@ function isRedOrExpired(el) {
   if (!el) return false;
   const text = el.textContent.trim().toUpperCase();
   if (text === 'EXPIRED') return true;
-
   const inlineStyle = (el.getAttribute('style') || '').toLowerCase();
-  if (inlineStyle.includes('color: red') ||
-      inlineStyle.includes('color:red') ||
-      inlineStyle.includes('color: #ff0000') ||
-      inlineStyle.includes('background: #ff0000') ||
-      inlineStyle.includes('background:#ff0000') ||
-      inlineStyle.includes('background: red') ||
-      inlineStyle.includes('background-color: red') ||
-      inlineStyle.includes('color: rgb(239, 68, 68)') ||
-      inlineStyle.includes('color: #ef4444')) {
+  if (inlineStyle.includes('color: red') || inlineStyle.includes('color:red') || inlineStyle.includes('color: #ff0000') || inlineStyle.includes('background: #ff0000') || inlineStyle.includes('background:#ff0000') || inlineStyle.includes('background: red') || inlineStyle.includes('background-color: red') || inlineStyle.includes('color: rgb(239, 68, 68)') || inlineStyle.includes('color: #ef4444')) {
     return true;
   }
   return false;
@@ -579,36 +518,29 @@ function isRedOrExpired(el) {
 function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   const refDate = new Date();
   const qualificationData = {};
-  
   function processQualification(labelText, dateText, parsedDate, isVisuallyExpired) {
     const name = labelText || "Qualification";
     const key = name.toUpperCase().replace(/\s+/g, '');
-    
     if (key.includes('CLASS1(SC)') || key.includes('CLASS1SC') || key.includes('CLASS1(S.C.)')) {
       return;
     }
-    
     const cleanName = name.replace('•', '').trim();
     let status = "VALID";
     let daysRemaining = null;
-    
     if (isVisuallyExpired) {
       status = "EXPIRED";
     } else if (parsedDate) {
       const timeDiff = parsedDate.getTime() - refDate.getTime();
       daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-      
       if (daysRemaining < 0) {
         status = "EXPIRED";
       } else if (daysRemaining <= daysThreshold) {
         status = "EXPIRING_SOON";
       }
     }
-    
     if (qualificationData[key] && qualificationData[key].status === "EXPIRED") {
       return;
     }
-    
     qualificationData[key] = {
       name: cleanName,
       dateText: dateText,
@@ -622,9 +554,8 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   let pilotName = "";
   let licenseType = "";
   let licenseNo = "";
-
   const allElements = doc.querySelectorAll('td, th, b, span, div, p');
-  
+
   // Extract Pilot Name
   for (let i = 0; i < allElements.length; i++) {
     if (isUnderPg2(allElements[i])) continue;
@@ -721,7 +652,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const headers = table.querySelectorAll('th, td');
     let isFclTable = false;
     let licenceTypeColIndex = -1;
-    
     for (let h = 0; h < headers.length; h++) {
       const headerText = headers[h].textContent.toUpperCase();
       if (headerText.includes('LICENCE TYPE') || headerText.includes('JENIS LESEN')) {
@@ -734,7 +664,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         break;
       }
     }
-    
     if (isFclTable && licenceTypeColIndex !== -1) {
       const rows = table.querySelectorAll('tr');
       for (let r = 0; r < rows.length; r++) {
@@ -757,7 +686,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   }
 
   licenseType = shortLicenseType || mapLicenseType(extractedFullType);
-
   if (!licenseNo) {
     for (let i = 0; i < allElements.length; i++) {
       if (isUnderPg2(allElements[i])) continue;
@@ -777,26 +705,17 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const card = cards[i];
     if (isUnderPg2(card)) continue;
     const cardText = card.textContent.toUpperCase();
-    
-    if (cardText.includes('MEDICAL EXPIRY DATE') || cardText.includes('TARIKH TAMAT TEMPOH PERUBATAN') ||
-        cardText.includes('LICENCE TYPE') || cardText.includes('VALIDITY EXPIRY DATE')) {
+    if (cardText.includes('MEDICAL EXPIRY DATE') || cardText.includes('TARIKH TAMAT TEMPOH PERUBATAN') || cardText.includes('LICENCE TYPE') || cardText.includes('VALIDITY EXPIRY DATE')) {
       continue;
     }
-    
     const cardNormalized = cardText.replace(/\s+/g, '');
     if (cardNormalized.includes('CLASS1(SC)') || cardNormalized.includes('CLASS1SC') || cardNormalized.includes('CLASS1(S.C.)')) {
       continue;
     }
-    
-    const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') ||
-                    card.querySelector('div[style*="font-weight: 500"]') ||
-                    card.querySelector('.fs-5');
+    const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') || card.querySelector('div[style*="font-weight: 500"]') || card.querySelector('.fs-5');
     const labelText = titleEl ? titleEl.textContent.trim() : "";
-    
-    const dateEl = card.querySelector('.text-uppercase b') ||
-                   card.querySelector('.fs-4 b, .fs-3 b');
+    const dateEl = card.querySelector('.text-uppercase b') || card.querySelector('.fs-4 b, .fs-3 b');
     const dateText = dateEl ? dateEl.textContent.trim() : "";
-    
     if (labelText && dateText) {
       if (shouldIgnore(dateEl)) continue;
       const parsedDate = parseLicenseDate(dateText);
@@ -811,24 +730,19 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const tr = rows[i];
     if (isUnderPg2(tr)) continue;
     const rowText = tr.textContent.toUpperCase();
-    
     const rowNormalized = rowText.replace(/\s+/g, '');
     if (rowNormalized.includes('CLASS1(SC)') || rowNormalized.includes('CLASS1SC') || rowNormalized.includes('CLASS1(S.C.)')) {
       continue;
     }
-    
     if (rowText.includes('LICENCE TYPE') || rowText.includes('VALIDITY EXPIRY DATE')) continue;
     if (rowText.includes('MEDICAL CLASS') || rowText.includes('KELAS PERUBATAN')) continue;
     if (rowText.includes('MEDICAL EXPIRY DATE') || rowText.includes('TARIKH TAMAT TEMPOH PERUBATAN')) continue;
-    
     const labelText = getLabelFromRow(tr);
     if (!labelText) continue;
-    
     const tds = getDirectChildCells(tr);
     for (let j = 0; j < tds.length; j++) {
       const tdText = tds[j].textContent.trim();
       const isDatePattern = /^\d{1,2}\s+[a-zA-Z]{3,10}\s+\d{4}$/.test(tdText) || tdText.toUpperCase() === 'NO EXPIRY';
-      
       if (isDatePattern) {
         if (shouldIgnore(tds[j])) continue;
         const parsedDate = parseLicenseDate(tdText);
@@ -850,7 +764,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         let dateText = el.textContent.trim();
         const tr = el.closest('tr');
         const card = el.closest('.card');
-        
         if (tr) {
           const rowNormalized = tr.textContent.toUpperCase().replace(/\s+/g, '');
           if (rowNormalized.includes('CLASS1(SC)') || rowNormalized.includes('CLASS1SC') || rowNormalized.includes('CLASS1(S.C.)')) continue;
@@ -861,15 +774,11 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         } else if (card) {
           const cardNormalized = card.textContent.toUpperCase().replace(/\s+/g, '');
           if (cardNormalized.includes('CLASS1(SC)') || cardNormalized.includes('CLASS1SC') || cardNormalized.includes('CLASS1(S.C.)')) continue;
-          const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') ||
-                          card.querySelector('div[style*="font-weight: 500"]') ||
-                          card.querySelector('.fs-5');
+          const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') || card.querySelector('div[style*="font-weight: 500"]') || card.querySelector('.fs-5');
           if (titleEl) labelText = titleEl.textContent.trim();
-          const dateEl = card.querySelector('.text-uppercase b') ||
-                         card.querySelector('.fs-4 b, .fs-3 b');
+          const dateEl = card.querySelector('.text-uppercase b') || card.querySelector('.fs-4 b, .fs-3 b');
           if (dateEl) dateText = dateEl.textContent.trim();
         }
-        
         if (!labelText) labelText = "Qualification";
         const key = labelText.toUpperCase().replace(/\s+/g, '');
         if (!qualificationData[key]) {
@@ -887,7 +796,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   let overallStatus = "VALID";
   let expiredCount = 0;
   let expiringSoonCount = 0;
-
   qualificationsList.forEach(item => {
     if (item.status === "EXPIRED") {
       expiredCount++;
@@ -895,13 +803,11 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
       expiringSoonCount++;
     }
   });
-
   if (expiredCount > 0) {
     overallStatus = "EXPIRED";
   } else if (expiringSoonCount > 0) {
     overallStatus = "EXPIRING_SOON";
   }
-
   return {
     pilotDetails: {
       name: pilotName || "-",
