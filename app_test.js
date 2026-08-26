@@ -323,29 +323,29 @@ function renderResults(results) {
   container.innerHTML = "";
 
   if (results.qualifications.length === 0) {
-    container.innerHTML = `<div class="text-center text-slate-500 py-6">No qualifications found on the scanned digital license.</div>`;
+    container.innerHTML = `<div class="text-center text-slate-500 py-6"> No qualifications found on the scanned digital license. </div>`;
   } else {
     results.qualifications.forEach(q => {
       const qRow = document.createElement("div");
       qRow.className = "border-b border-slate-100 last:border-b-0 py-3 flex items-center justify-between";
 
-      const isUrgent = q.status === "EXPIRED" || q.status === "EXPIRING_SOON";
-      const dateWeightClass = isUrgent ? "font-bold text-slate-900" : "font-medium text-slate-500";
-      
-      let statusBadgeHtml = "";
+      let statusHtml = "";
       if (q.status === "EXPIRED") {
-        statusBadgeHtml = `<span class="text-[9px] bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded ml-2">EXPIRED</span>`;
+        statusHtml = `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Expired</span>`;
       } else if (q.status === "EXPIRING_SOON") {
-        statusBadgeHtml = `<span class="text-[9px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded ml-2">EXPIRING SOON</span>`;
+        const daysLeft = q.daysRemaining === 1 ? "1 day left" : `${q.daysRemaining} days left`;
+        statusHtml = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded font-bold uppercase">${daysLeft}</span>`;
+      } else {
+        statusHtml = `<span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Valid</span>`;
       }
 
       qRow.innerHTML = `
-        <div class="flex flex-col">
-          <span class="text-xs font-semibold text-slate-800">${q.name}</span>
+        <div class="flex-grow pr-4">
+          <div class="font-semibold text-slate-800 text-sm md:text-base">${q.name}</div>
+          <div class="text-xs text-slate-500">Expiry: ${q.dateText || "No Expiry"}</div>
         </div>
-        <div class="text-right flex items-center justify-end">
-          <span class="text-xs ${dateWeightClass}">${q.dateText || "N/A"}</span>
-          ${statusBadgeHtml}
+        <div class="flex-shrink-0 text-right">
+          ${statusHtml}
         </div>
       `;
 
