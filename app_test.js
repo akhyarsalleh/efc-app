@@ -132,10 +132,16 @@ window.loadHistoricalRecord = function(id) {
   if (match) {
     lastScannedUrl = match.url; // Ensures "Open Original" button works
     renderResults(match.resultsData);
-  }
+  }  
 };
 
-
+function clearHistory() {
+  if (confirm("Are you sure you want to clear all recent compliance checks from this device?")) {
+    scanHistory = []; // Wipe the global array
+    localStorage.removeItem("scan_history"); // Wipe the local storage
+    renderHistoryList(); // Refresh the UI instantly
+  }
+}
 
 
 // -----------------------------------------
