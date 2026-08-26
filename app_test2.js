@@ -342,9 +342,11 @@ function parseLicenseDate(dateStr) {
   }
   const match = trimmed.match(/^(\d{1,2})\s+([a-zA-Z]{3,10})\s+(\d{4})$/);
   if (!match) return null;
-  const day = parseInt(match[7], 10);
-  const monthStr = match[8].toUpperCase();
-  const year = parseInt(match[1], 10);
+  
+  // FIXED: Accessing the correct index groups from the regex array
+  const day = parseInt(match[2], 10);
+  const monthStr = match[3].toUpperCase(); 
+  const year = parseInt(match[4], 10);
 
   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const monthsMalay = ["JAN", "FEB", "MAC", "APR", "MEI", "JUN", "JUL", "OGOS", "SEP", "OKT", "NOV", "DIS"];
