@@ -103,9 +103,7 @@ function renderHistoryList() {
   const container = document.getElementById("history-list");
   if (!container) return;
   if (scanHistory.length === 0) {
-    container.innerHTML = `
-      <div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>
-    `;
+    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
     return;
   }
 
@@ -307,7 +305,7 @@ function renderResults(results) {
     overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
-  // Populate list of qualifications
+// Populate list of qualifications
   const container = document.getElementById("qualifications-list");
   container.innerHTML = "";
 
@@ -343,7 +341,7 @@ function renderResults(results) {
   }
 
   // Switch UI view to results
-  showView("results-view");
+  showView("result-view");
 }
 
 // -----------------------------------------
