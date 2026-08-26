@@ -1,14 +1,13 @@
-// app_test.js - Licence Scanner App Client with Offline History
+// app.js - Licence Scanner App Client
+
 // Configuration - Replace with your deployed Vercel URL
-const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
+const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; 
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Global state
+let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 let html5QrcodeScanner = null;
 let lastScannedUrl = "";
-
-// --- SUGGESTION 7: Offline local storage cache ---
-let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
   initApp();
