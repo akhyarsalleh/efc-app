@@ -131,10 +131,11 @@ window.loadHistoricalRecord = function(id) {
 window.clearHistory = function() {
   if (confirm("Are you sure you want to clear all recent compliance checks from this device?")) {
     scanHistory = []; // Wipe the global array
-    localStorage.removeItem("scan_history"); // Wipe local storage
+    localStorage.removeItem("scan_history"); // Wipe the local storage
     renderHistoryList(); // Refresh the UI instantly
   }
-};
+}
+
 
 // -----------------------------------------
 // QR Scanner Controller
