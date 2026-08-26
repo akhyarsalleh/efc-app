@@ -4,6 +4,9 @@
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
+// At top of app.js
+let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
+
 // Global state
 let html5QrcodeScanner = null;
 let lastScannedUrl = "";
@@ -30,6 +33,7 @@ function initApp() {
   
   // --- SUGGESTION 7: Initial render of cached list ---
   renderHistoryList();
+  
 }
 
 // -----------------------------------------
@@ -42,13 +46,12 @@ function showView(viewId) {
   });
   const targetView = document.getElementById(viewId);
   if (targetView) targetView.classList.remove("hidden");
-  
-// --- AUTOMATICALLY COLLAPSE THE HISTORY DETAILS CARD ---
+
+  // Auto-close history tab on every navigation
   const historyDetails = document.getElementById("history-details");
-  if (historyDetails) {
-    historyDetails.removeAttribute("open");
-  }
+  if (historyDetails) historyDetails.removeAttribute("open");
 }
+
 
 function showScannerView() {
   stopScanner();
@@ -95,14 +98,9 @@ function saveToHistory(results, originalUrl) {
     resultsData: results,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
-
-  // Prevent duplicates by removing previous record of same license number
   scanHistory = scanHistory.filter(item => item.id !== record.id);
   scanHistory.unshift(record);
-  
-  // Keep memory light by limiting local storage cache to last 10 scans
   if (scanHistory.length > 10) scanHistory.pop();
-  
   localStorage.setItem("scan_history", JSON.stringify(scanHistory));
   renderHistoryList();
 }
@@ -110,27 +108,20 @@ function saveToHistory(results, originalUrl) {
 function renderHistoryList() {
   const container = document.getElementById("history-list");
   if (!container) return;
-  
   if (scanHistory.length === 0) {
-    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
+    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans.</div>`;
     return;
   }
 
   container.innerHTML = scanHistory.map(item => {
-    // Generate color-coded indicators matching your exact core status rules
-    const dotColor = item.overallStatus === "EXPIRED" 
-      ? "bg-red-500" 
-      : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
-
+    const dotColor = item.overallStatus === "EXPIRED" ? "bg-red-500" : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
     return `
-      <div onclick="loadHistoricalRecord('${item.id}')" class="py-2.5 px-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 rounded-xl transition-all duration-150 border-b border-slate-50 last:border-b-0">
+      <div onclick="loadHistoricalRecord('${item.id}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
         <div class="flex flex-col text-left">
-          <span class="text-xs font-semibold text-slate-800">${item.name}</span>
-          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">${item.licenseType} • Scanned at ${item.timestamp}</span>
+          <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">${item.licenseType} • ${item.timestamp}</span>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <span class="w-2.5 h-2.5 rounded-full ${dotColor} shadow-sm"></span>
-        </div>
+        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
     `;
   }).join('');
@@ -139,11 +130,11 @@ function renderHistoryList() {
 window.loadHistoricalRecord = function(id) {
   const match = scanHistory.find(item => item.id === id);
   if (match) {
-    // Assigning original link back to state so "Open Original" button works perfectly
-    lastScannedUrl = match.url; 
+    lastScannedUrl = match.url; // Ensures "Open Original" button works
     renderResults(match.resultsData);
   }
 };
+
 
 
 
