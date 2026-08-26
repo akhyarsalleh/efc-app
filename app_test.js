@@ -42,6 +42,12 @@ function showView(viewId) {
   });
   const targetView = document.getElementById(viewId);
   if (targetView) targetView.classList.remove("hidden");
+  
+// --- AUTOMATICALLY COLLAPSE THE HISTORY DETAILS CARD ---
+  const historyDetails = document.getElementById("history-details");
+  if (historyDetails) {
+    historyDetails.removeAttribute("open");
+  }
 }
 
 function showScannerView() {
@@ -106,23 +112,25 @@ function renderHistoryList() {
   if (!container) return;
   
   if (scanHistory.length === 0) {
-    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-2 text-center">No recent scans on this device.</div>`;
+    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
     return;
   }
 
   container.innerHTML = scanHistory.map(item => {
-    // Generate color-coded indicators matching the exact status logic
-    const statusDot = item.overallStatus === "EXPIRED" 
+    // Generate color-coded indicators matching your exact core status rules
+    const dotColor = item.overallStatus === "EXPIRED" 
       ? "bg-red-500" 
       : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
 
     return `
-      <div onclick="loadHistoricalRecord('${item.id}')" class="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 rounded-xl cursor-pointer border border-slate-100 transition duration-150">
+      <div onclick="loadHistoricalRecord('${item.id}')" class="py-2.5 px-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 rounded-xl transition-all duration-150 border-b border-slate-50 last:border-b-0">
         <div class="flex flex-col text-left">
-          <span class="text-xs font-bold text-slate-800">${item.name}</span>
-          <span class="text-[9px] text-slate-400 font-semibold">${item.licenseType} • Scanned at ${item.timestamp}</span>
+          <span class="text-xs font-semibold text-slate-800">${item.name}</span>
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">${item.licenseType} • Scanned at ${item.timestamp}</span>
         </div>
-        <span class="w-2.5 h-2.5 rounded-full ${statusDot} shadow-sm shrink-0 ml-2"></span>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="w-2.5 h-2.5 rounded-full ${dotColor} shadow-sm"></span>
+        </div>
       </div>
     `;
   }).join('');
