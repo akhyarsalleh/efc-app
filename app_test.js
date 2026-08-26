@@ -323,12 +323,15 @@ function renderResults(results) {
   container.innerHTML = "";
 
   if (results.qualifications.length === 0) {
-    container.innerHTML = `<div class="text-center text-slate-500 py-6"> No qualifications found on the scanned digital license. </div>`;
+    container.innerHTML = `
+      <div class="text-center text-slate-500 py-6">
+        No qualifications found on the scanned digital licence.
+      </div>`;
   } else {
     results.qualifications.forEach(q => {
       const qRow = document.createElement("div");
       qRow.className = "border-b border-slate-100 last:border-b-0 py-3 flex items-center justify-between";
-
+      
       let statusHtml = "";
       if (q.status === "EXPIRED") {
         statusHtml = `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Expired</span>`;
@@ -348,10 +351,12 @@ function renderResults(results) {
           ${statusHtml}
         </div>
       `;
-
       container.appendChild(qRow);
     });
   }
+
+  showView("result-view");
+}
 
 // -----------------------------------------
 // Core Parsing Engine (Adapted from checker.js)
