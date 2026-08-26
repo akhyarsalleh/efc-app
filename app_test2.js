@@ -1,7 +1,7 @@
 // app.js - Licence Scanner App Client
 
 // Configuration - Replace with your deployed Vercel URL
-const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; 
+const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Global state
@@ -49,7 +49,6 @@ function showScannerView() {
   stopScanner();
   const errorMsg = document.getElementById("error-message");
   if (errorMsg) errorMsg.innerText = "";
-  
   const manualInput = document.getElementById("manual-url-input");
   if (manualInput) manualInput.value = "";
   
@@ -91,7 +90,6 @@ function saveToHistory(results, originalUrl) {
     resultsData: results,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
-
   scanHistory = scanHistory.filter(item => item.id !== record.id);
   scanHistory.unshift(record);
   if (scanHistory.length > 10) scanHistory.pop();
@@ -144,13 +142,11 @@ window.clearHistory = function() {
 function startScanner() {
   const errorMsg = document.getElementById("error-message");
   if (errorMsg) errorMsg.innerText = "";
-  
   const qrContainer = document.getElementById("qr-reader-container");
   if (qrContainer) qrContainer.classList.remove("hidden");
-  
+
   const startBtn = document.getElementById("start-scan-btn");
   if (startBtn) startBtn.classList.add("hidden");
-  
   const stopBtn = document.getElementById("stop-scan-btn");
   if (stopBtn) stopBtn.classList.remove("hidden");
 
@@ -165,12 +161,7 @@ function startScanner() {
     }
   };
 
-  const config = { 
-    fps: 30, 
-    experimentalFeatures: { 
-      useBarCodeDetectorIfSupported: true
-    } 
-  };
+  const config = { fps: 30, experimentalFeatures: { useBarCodeDetectorIfSupported: true } };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" },
@@ -188,10 +179,8 @@ function stopScanner() {
       html5QrcodeScanner = null;
       const qrContainer = document.getElementById("qr-reader-container");
       if (qrContainer) qrContainer.classList.add("hidden");
-      
       const startBtn = document.getElementById("start-scan-btn");
       if (startBtn) startBtn.classList.remove("hidden");
-      
       const stopBtn = document.getElementById("stop-scan-btn");
       if (stopBtn) stopBtn.classList.add("hidden");
     }).catch(err => {
@@ -237,7 +226,6 @@ async function processLicenseUrl(url) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, "text/html");
     const results = parseLicenseDOM(doc, DEFAULT_THRESHOLD);
-    
     saveToHistory(results, url);
     renderResults(results);
   } catch (error) {
@@ -276,9 +264,8 @@ function renderResults(results) {
   const statusBadge = document.getElementById("overall-status-badge");
   const resultHeader = document.getElementById("result-header");
   const overallMsg = document.getElementById("overall-message");
-
   statusBadge.className = "status-badge font-bold uppercase rounded px-4 py-2 text-white inline-block text-lg mt-2";
-  
+
   // Reset previous background colors
   document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
 
@@ -305,7 +292,7 @@ function renderResults(results) {
     overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
-// Populate list of qualifications
+  // Populate list of qualifications
   const container = document.getElementById("qualifications-list");
   container.innerHTML = "";
 
@@ -340,7 +327,7 @@ function renderResults(results) {
     });
   }
 
-  // Switch UI view to results
+  // Switch UI view to results (Matches container id "result-view" in index_test.html)
   showView("result-view");
 }
 
@@ -355,9 +342,9 @@ function parseLicenseDate(dateStr) {
   }
   const match = trimmed.match(/^(\d{1,2})\s+([a-zA-Z]{3,10})\s+(\d{4})$/);
   if (!match) return null;
-  const day = parseInt(match[1], 10);
-  const monthStr = match[2].toUpperCase();
-  const year = parseInt(match[3], 10);
+  const day = parseInt(match[7], 10);
+  const monthStr = match[8].toUpperCase();
+  const year = parseInt(match[1], 10);
 
   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const monthsMalay = ["JAN", "FEB", "MAC", "APR", "MEI", "JUN", "JUL", "OGOS", "SEP", "OKT", "NOV", "DIS"];
@@ -377,7 +364,7 @@ function isUnderPg2(el) {
     if (pgEl) {
       const match = pgEl.id.match(/^pg(\d+)$/);
       if (match) {
-        const pgNum = parseInt(match[1], 10);
+        const pgNum = parseInt(match[7], 10);
         if (pgNum >= 2) return true;
       }
     }
@@ -387,7 +374,7 @@ function isUnderPg2(el) {
     if (curr.id && typeof curr.id === 'string') {
       const match = curr.id.match(/^pg(\d+)$/);
       if (match) {
-        const pgNum = parseInt(match[1], 10);
+        const pgNum = parseInt(match[7], 10);
         if (pgNum >= 2) return true;
       }
     }
@@ -491,7 +478,7 @@ function shouldIgnore(el) {
           hasIssueDateHeader = true;
         }
       }
-      if (hasIssueDateHeader && (tds[1] === el || tds[1].contains(el))) {
+      if (hasIssueDateHeader && (tds[7] === el || tds[7].contains(el))) {
         return true;
       }
     }
@@ -513,7 +500,7 @@ function isRedOrExpired(el) {
 function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   const refDate = new Date();
   const qualificationData = {};
-  
+
   function processQualification(labelText, dateText, parsedDate, isVisuallyExpired) {
     const name = labelText || "Qualification";
     const key = name.toUpperCase().replace(/\s+/g, '');
@@ -523,6 +510,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const cleanName = name.replace('•', '').trim();
     let status = "VALID";
     let daysRemaining = null;
+
     if (isVisuallyExpired) {
       status = "EXPIRED";
     } else if (parsedDate) {
@@ -552,7 +540,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   let licenseNo = "";
   const allElements = doc.querySelectorAll('td, th, b, span, div, p');
 
-  // Extract Pilot Name
   for (let i = 0; i < allElements.length; i++) {
     if (isUnderPg2(allElements[i])) continue;
     const text = allElements[i].textContent.toUpperCase();
@@ -577,7 +564,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     }
   }
 
-  // Extract License Type & License Number
   let extractedFullType = "";
   for (let i = 0; i < allElements.length; i++) {
     if (isUnderPg2(allElements[i])) continue;
@@ -680,6 +666,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   }
 
   licenseType = shortLicenseType || mapLicenseType(extractedFullType);
+
   if (!licenseNo) {
     for (let i = 0; i < allElements.length; i++) {
       if (isUnderPg2(allElements[i])) continue;
@@ -731,8 +718,10 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     if (rowText.includes('LICENCE TYPE') || rowText.includes('VALIDITY EXPIRY DATE')) continue;
     if (rowText.includes('MEDICAL CLASS') || rowText.includes('KELAS PERUBATAN')) continue;
     if (rowText.includes('MEDICAL EXPIRY DATE') || rowText.includes('TARIKH TAMAT TEMPOH PERUBATAN')) continue;
+
     const labelText = getLabelFromRow(tr);
     if (!labelText) continue;
+
     const tds = getDirectChildCells(tr);
     for (let j = 0; j < tds.length; j++) {
       const tdText = tds[j].textContent.trim();
@@ -790,6 +779,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   let overallStatus = "VALID";
   let expiredCount = 0;
   let expiringSoonCount = 0;
+
   qualificationsList.forEach(item => {
     if (item.status === "EXPIRED") {
       expiredCount++;
@@ -797,11 +787,13 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
       expiringSoonCount++;
     }
   });
+
   if (expiredCount > 0) {
     overallStatus = "EXPIRED";
   } else if (expiringSoonCount > 0) {
     overallStatus = "EXPIRING_SOON";
   }
+
   return {
     pilotDetails: {
       name: pilotName || "-",
