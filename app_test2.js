@@ -364,7 +364,7 @@ function isUnderPg2(el) {
     if (pgEl) {
       const match = pgEl.id.match(/^pg(\d+)$/);
       if (match) {
-        const pgNum = parseInt(match[7], 10);
+        const pgNum = parseInt(match[1], 10);
         if (pgNum >= 2) return true;
       }
     }
@@ -374,7 +374,7 @@ function isUnderPg2(el) {
     if (curr.id && typeof curr.id === 'string') {
       const match = curr.id.match(/^pg(\d+)$/);
       if (match) {
-        const pgNum = parseInt(match[7], 10);
+        const pgNum = parseInt(match[1], 10);
         if (pgNum >= 2) return true;
       }
     }
@@ -422,15 +422,18 @@ function shouldIgnore(el) {
   const text = el.textContent.trim();
   if (!text) return true;
   const upperText = text.toUpperCase();
+
   if (upperText.includes("INITIAL GRANT") || upperText.includes("INITIAL_GRANT")) {
     return true;
   }
-  if (upperText.includes("7 DECEMBER 1944") || upperText.includes("7 DISEMBER 1944") || upperText.includes("DECEMBER 1944") || upperText.includes("DISEMBER 1944")) {
+  if (upperText.includes("7 DECEMBER 1944") || upperText.includes("7 DISEMBER 1944") || 
+      upperText.includes("DECEMBER 1944") || upperText.includes("DISEMBER 1944")) {
     return true;
   }
   if (/\d{1,2}:\d{2}:\d{2}/.test(text)) {
     return true;
   }
+
   let curr = el;
   for (let i = 0; i < 5; i++) {
     if (!curr) break;
@@ -440,7 +443,8 @@ function shouldIgnore(el) {
     }
     if (tagName === 'DIV') {
       const className = (curr.className || '').toLowerCase();
-      if (className.includes('row') || className.includes('container') || className.includes('col-') || className.includes('card')) {
+      if (className.includes('row') || className.includes('container') || 
+          className.includes('col-') || className.includes('card')) {
         break;
       }
     }
@@ -462,6 +466,7 @@ function shouldIgnore(el) {
     }
     curr = curr.parentElement;
   }
+
   const tr = el.closest('tr');
   if (tr) {
     const rowText = tr.textContent.toUpperCase();
@@ -478,7 +483,7 @@ function shouldIgnore(el) {
           hasIssueDateHeader = true;
         }
       }
-      if (hasIssueDateHeader && (tds[7] === el || tds[7].contains(el))) {
+      if (hasIssueDateHeader && (tds[1] === el || tds[1].contains(el))) {
         return true;
       }
     }
@@ -490,8 +495,17 @@ function isRedOrExpired(el) {
   if (!el) return false;
   const text = el.textContent.trim().toUpperCase();
   if (text === 'EXPIRED') return true;
+
   const inlineStyle = (el.getAttribute('style') || '').toLowerCase();
-  if (inlineStyle.includes('color: red') || inlineStyle.includes('color:red') || inlineStyle.includes('color: #ff0000') || inlineStyle.includes('background: #ff0000') || inlineStyle.includes('background:#ff0000') || inlineStyle.includes('background: red') || inlineStyle.includes('background-color: red') || inlineStyle.includes('color: rgb(239, 68, 68)') || inlineStyle.includes('color: #ef4444')) {
+  if (inlineStyle.includes('color: red') ||
+      inlineStyle.includes('color:red') ||
+      inlineStyle.includes('color: #ff0000') ||
+      inlineStyle.includes('background: #ff0000') ||
+      inlineStyle.includes('background:#ff0000') ||
+      inlineStyle.includes('background: red') ||
+      inlineStyle.includes('background-color: red') ||
+      inlineStyle.includes('color: rgb(239, 68, 68)') ||
+      inlineStyle.includes('color: #ef4444')) {
     return true;
   }
   return false;
@@ -500,31 +514,36 @@ function isRedOrExpired(el) {
 function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   const refDate = new Date();
   const qualificationData = {};
-
+  
   function processQualification(labelText, dateText, parsedDate, isVisuallyExpired) {
     const name = labelText || "Qualification";
     const key = name.toUpperCase().replace(/\s+/g, '');
+    
     if (key.includes('CLASS1(SC)') || key.includes('CLASS1SC') || key.includes('CLASS1(S.C.)')) {
       return;
     }
+    
     const cleanName = name.replace('•', '').trim();
     let status = "VALID";
     let daysRemaining = null;
-
+    
     if (isVisuallyExpired) {
       status = "EXPIRED";
     } else if (parsedDate) {
       const timeDiff = parsedDate.getTime() - refDate.getTime();
       daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+      
       if (daysRemaining < 0) {
         status = "EXPIRED";
       } else if (daysRemaining <= daysThreshold) {
         status = "EXPIRING_SOON";
       }
     }
+    
     if (qualificationData[key] && qualificationData[key].status === "EXPIRED") {
       return;
     }
+    
     qualificationData[key] = {
       name: cleanName,
       dateText: dateText,
@@ -533,6 +552,7 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
       status: status
     };
   }
+
 
   // --- Extract Pilot Details ---
   let pilotName = "";
