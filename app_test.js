@@ -318,7 +318,7 @@ function renderResults(results) {
     overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
-  // Populate list of qualifications
+// Populate list of qualifications
   const container = document.getElementById("qualifications-list");
   container.innerHTML = "";
   if (results.qualifications.length === 0) {
