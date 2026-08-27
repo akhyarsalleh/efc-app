@@ -255,7 +255,9 @@ async function processLicenseUrl(url) {
     hour: '2-digit', 
     minute: '2-digit', 
     hour12: false 
-  }).replace(',', ''); // Output format: "26 Aug 2026 14:30"
+  }).replace(', ', ' - ')    // Replaces standard comma separator (Chrome/Firefox) with " - "
+    .replace(' at ', ' - ')  // Replaces Safari's "at" separator with " - "
+    .replace(',', ' - ');    // Fallback safety separator
 
   
   try {
