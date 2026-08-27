@@ -287,7 +287,8 @@ function renderResults(results) {
   // Render the last scanned date/time on the results page
   const timeEl = document.getElementById("scan-timestamp");
   if (timeEl) {
-    timeEl.innerText = results.scanTime "LT" || "N/A";
+    //timeEl.innerText = results.scanTime || "N/A";
+    timeEl.innerText = results.scanTime ? `${results.scanTime} LT` : "N/A";
   }
   
   // Set Pilot profile details
