@@ -104,8 +104,7 @@ function showError(msg) {
     resultsData: results,
     timestamp: timeOnly
   };
-    
-  };
+
   scanHistory = scanHistory.filter(item => item.id !== record.id);
   scanHistory.unshift(record);
   if (scanHistory.length > 10) scanHistory.pop();
