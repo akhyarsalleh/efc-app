@@ -91,9 +91,9 @@ function showError(msg) {
 // Scan History Controllers
 // -----------------------------------------
 // Extract only the 24H clock time from scanTime (e.g., "14:30")
-  const timeOnly = results.scanTime 
-    ? results.scanTime.split(' ').slice(-1) 
-    : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+const timeOnly = results.scanTime
+  ? results.scanTime.split(' ').pop()
+  : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 
   const record = {
     id: results.pilotDetails.licenseNo || Date.now().toString(),
