@@ -90,7 +90,11 @@ function showError(msg) {
 // -----------------------------------------
 // Scan History Controllers
 // -----------------------------------------
-function saveToHistory(results, originalUrl) {
+// Extract only the 24H clock time from scanTime (e.g., "14:30")
+  const timeOnly = results.scanTime 
+    ? results.scanTime.split(' ').slice(-1) 
+    : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+
   const record = {
     id: results.pilotDetails.licenseNo || Date.now().toString(),
     name: results.pilotDetails.name,
@@ -98,7 +102,9 @@ function saveToHistory(results, originalUrl) {
     overallStatus: results.overallStatus,
     url: originalUrl,
     resultsData: results,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    timestamp: timeOnly
+  };
+    
   };
   scanHistory = scanHistory.filter(item => item.id !== record.id);
   scanHistory.unshift(record);
@@ -226,6 +232,17 @@ async function processLicenseUrl(url) {
   lastScannedUrl = url;
   await stopScanner();
   showLoading("Fetching digital license via proxy...");
+// Capture local date & time in 24-hour format
+  const scanTime = new Date().toLocaleString('en-GB', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
+  }).replace(',', ''); // Output format: "26 Aug 2026 14:30"
+
+  
   try {
     const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
     const response = await fetch(fetchUrl);
@@ -236,6 +253,10 @@ async function processLicenseUrl(url) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, "text/html");
     const results = parseLicenseDOM(doc, DEFAULT_THRESHOLD);
+    
+    // Attach the timestamp to the results object so renderResults can see it
+    results.scanTime = scanTime; 
+    
     saveToHistory(results, url);
     renderResults(results);
   } catch (error) {
@@ -248,6 +269,12 @@ async function processLicenseUrl(url) {
 // UI Rendering of Results
 // -----------------------------------------
 function renderResults(results) {
+  // Render the last scanned date/time on the results page
+  const timeEl = document.getElementById("scan-timestamp");
+  if (timeEl) {
+    timeEl.innerText = results.scanTime || "N/A";
+  }
+  
   // Set Pilot profile details
   document.getElementById("pilot-name").innerText = results.pilotDetails.name || "N/A";
   document.getElementById("licence-type").innerText = results.pilotDetails.licenseType || "N/A";
