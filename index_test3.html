@@ -35,7 +35,7 @@
 
               <!-- SUGGESTION 7: Overlay History Card (Repositioned & Separated) -->
     <div id="history-card-wrapper" class="relative mb-5 z-50">
-      <details id="history-details" class="bg-white shadow-sm rounded-3xl border border-slate-100 group transition-all duration-200">
+      <details id="history-details" class="bg-blue-200 shadow-sm rounded-3xl border border-slate-100 group transition-all duration-200">
         <summary class="flex items-center justify-between cursor-pointer list-none p-4 text-slate-500 hover:text-slate-800 transition-colors select-none">
           <span class="text-[10px] uppercase tracking-wider font-extrabold flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@
         </summary>
         
         <!-- Absolute dropdown list (floats cleanly on top of scanner elements) -->
-        <div class="absolute left-0 right-0 top-full mt-1 z-50 bg-white shadow-2xl rounded-2xl border border-slate-100 p-2 max-h-60 overflow-y-auto">
+        <div class="absolute left-0 right-0 top-full mt-1 z-50 bg-white -2xl rounded-2xl border border-slate-100 p-2 max-h-60 overflow-y-auto">
           <div id="history-list" class="flex flex-col divide-y divide-slate-50">
             <div class="text-[10px] text-slate-400 italic py-3 text-center">No recent scans on this device.</div>
           </div>
@@ -64,7 +64,7 @@
     </div>
             
             <!-- SCANNER VIEW -->
-            <div id="scanner-view" class="app-view bg-white shadow-xl rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
+            <div id="scanner-view" class="app-view bg-white shadow-md rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
                 <div class="text-center">
                     <h2 class="text-lg font-bold text-slate-900">Instructions</h2>
                     <p class="text-sm text-slate-500 mt-1">Point your camera at the QR code on the<br>pilot's licence card and hold steady.</p>
@@ -108,7 +108,7 @@
             </div>     
 
             <!-- LOADING VIEW -->
-            <div id="loading-view" class="app-view hidden bg-white shadow-xl rounded-3xl p-10 border border-slate-100 flex flex-col items-center justify-center gap-4 text-center">
+            <div id="loading-view" class="app-view hidden bg-white shadow-lg rounded-3xl p-10 border border-slate-100 flex flex-col items-center justify-center gap-4 text-center">
                 <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -120,22 +120,22 @@
             <div id="result-view" class="app-view hidden flex flex-col gap-4">
 
                 <!-- Strict Reminder -->
-                <div class="bg-red-50 rounded-2xl p-4 text-center border border-red-200 shadow-xl">
+                <div class="bg-red-50 rounded-2xl p-4 text-center border border-red-400 shadow-lg">
                     <div class="text-xs font-black text-red-600 uppercase tracking-wide">REMINDER: ALWAYS RE-CHECK AND VERIFY!<br>MANUAL CROSS-CHECKING IS <span class="underline">MANDATORY</span></div>
                 </div>
                 
                 <!-- Verdict Header -->
-                <div class="bg-white shadow-xl rounded-3xl p-6 border border-slate-100 text-center flex flex-col items-center">
+                <div class="bg-white shadow-lg rounded-3xl p-6 border border-slate-100 text-center flex flex-col items-center">
                     <div id="result-header" class="text-lg font-black tracking-normal uppercase">-</div>
                     <div id="overall-status-badge" class="status-badge font-black uppercase rounded-full px-6 py-3 text-white inline-block text-xs tracking-wider mt-4 shadow-md">
                         -
                     </div>
                     <p id="overall-message" class="text-[13px] text-slate-500 mt-4 max-w-xs mx-auto leading-relaxed hidden">-</p>
-                    <p class="text-[10px] text-slate-600 uppercase tracking-wide font-extrabold py-10 rounded-md">Last Checked: <span id="scan-timestamp" class="text-blue-600 font-bold">--:-- LT</span></p>
+                    <p class="text-[10px] text-slate-600 uppercase tracking-wide font-extrabold pt-4 rounded-md">Last Checked: <span id="scan-timestamp" class="text-blue-600 font-bold">--:-- LT</span></p>
                 </div>
 
                 <!-- Pilot Profile Card -->
-                <div class="bg-white shadow-xl rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
+                <div class="bg-white shadow-lg rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
                     <div class="border-b border-slate-100 pb-2">
                         <span class="text-slate-400 text-xxs uppercase tracking-wider font-extrabold">PILOT CREDENTIALS</span>
                     </div>
@@ -158,7 +158,7 @@
                 </div>
 
                 <!-- Qualifications List Card -->
-                <div class="bg-white shadow-xl rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
+                <div class="bg-white shadow-lg rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
                     <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
                         <span class="text-slate-400 text-xxs uppercase tracking-wider font-extrabold">VALIDITIES & CERTIFICATIONS</span>
                         <span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold uppercase">Checker Active</span>
@@ -181,7 +181,7 @@
                         Proceed to Licence Page
                     </button>
                     <!--<button id="scan-new-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2">-->
-                    <button id="scan-new-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                    <button id="scan-new-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                         Scan Another QR Code
                     </button>
