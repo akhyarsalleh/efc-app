@@ -26,6 +26,21 @@ function initApp() {
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
 
+  // --- NEW: Close history accordion when clicking anywhere outside of it ---
+  document.addEventListener("click", (event) => {
+    const historyDetails = document.getElementById("history-details");
+    const historyWrapper = document.getElementById("history-card-wrapper");
+    
+    // Check if the history card exists and is currently open
+    if (historyDetails && historyDetails.hasAttribute("open")) {
+      // If the clicked element is NOT inside the history card wrapper, close it
+      if (historyWrapper && !historyWrapper.contains(event.target)) {
+        historyDetails.removeAttribute("open");
+      }
+    }
+  });
+
+
   // Initial render of cached list
   renderHistoryList();
 }
