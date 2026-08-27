@@ -83,6 +83,8 @@ function showScannerView() {
 
   renderHistoryList();
   showView("scanner-view");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showLoading(msg = "Fetching digital license...") {
