@@ -20,6 +20,13 @@
     <style>
         .hidden { display: none !important; }
         .text-xxs { font-size: 0.65rem; }
+        /* Smooth vertical scanner line sweep */
+        @keyframes laser-sweep {
+          0% { top: 0%; opacity: 0.3; }
+          15% { opacity: 1; }
+          85% { opacity: 1; }
+          100% { top: 100%; opacity: 0.3; }}
+            .animate-laser { animation: laser-sweep 2.5s infinite linear; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col justify-between">
@@ -90,6 +97,29 @@
                 <!-- QR Scanner Frame -->
                 <div id="qr-reader-container" class="hidden w-full overflow-hidden rounded-2xl bg-slate-900 aspect-square flex items-center justify-center relative">
                     <div id="qr-reader" class="w-full h-full"></div>
+
+                      <!-- Interactive Visual Scanner HUD -->
+                          <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center z-10">
+                            <!-- Active Target Bounding Box (70% viewport scale) -->
+                            <div class="w-[70%] h-[70%] border border-white/20 rounded-2xl relative flex items-center justify-center shadow-[0_0_0_9999px_rgba(15,23,42,0.45)]">
+                              
+                              <!-- High-visibility Corner Brackets -->
+                              <div class="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-blue-500 rounded-tl-md"></div>
+                              <div class="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-blue-500 rounded-tr-md"></div>
+                              <div class="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-blue-500 rounded-bl-md"></div>
+                              <div class="absolute -bottom-1 -right-1 w-5 h-5 border-b-4 border-r-4 border-blue-500 rounded-br-md"></div>
+                              
+                              <!-- Animated sweeping laser line -->
+                              <div class="absolute left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_8px_rgba(59,130,246,0.8)] animate-laser"></div>
+                            </div>
+                            
+                            <!-- Real-time Instruction Badge (Brightness / Distance) -->
+                            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-950/80 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[9px] font-black tracking-wider uppercase whitespace-nowrap border border-slate-800 flex items-center gap-1.5 shadow-xl">
+                              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
+                              Position QR 15cm away • Hold Steady
+                            </div>
+                          </div>
+                    
                 </div>
 
                 <!-- Error Display -->
