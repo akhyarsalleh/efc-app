@@ -23,6 +23,16 @@
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col justify-between">
+
+    <!-- Floating Top Overlay Alert (Solid Red Background) -->
+  <div id="offline-overlay" class="hidden fixed top-0 left-0 right-0 z- bg-red-600 text-white text-[10px] font-black uppercase tracking-widest text-center py-3 px-4 shadow-xl flex items-center justify-center gap-2 animate-pulse">
+    <!-- Warn icon -->
+    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <span>Offline — Please check your connection</span>
+  </div>
+    
     <div class="max-w-md mx-auto w-full p-4 flex flex-col min-h-screen">
         <!-- Header Ori
         <header class="text-center py-4">
@@ -91,7 +101,7 @@
                 <div id="qr-reader-container" class="hidden w-full overflow-hidden rounded-2xl bg-slate-900 aspect-square flex items-center justify-center relative">
                     <div id="qr-reader" class="w-full h-full"></div>
                       <div class="absolute bottom-5 left-0 right-0 text-center pointer-events-none z-10">
-                        <span class="text-white text-[10px] font-black uppercase tracking-widest drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.85)]">Avoid Shadows • Hold Steady</span>
+                        <span class="text-white text-[9px] font-bold uppercase tracking-widest drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.85)]">Avoid Shadows • Hold Steady</span>
                       </div>
                     
                 </div>
