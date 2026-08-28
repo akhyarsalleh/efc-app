@@ -4,6 +4,12 @@
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
+// Validates whether a scanned/entered URL matches the official CAAM Licence QR pattern
+function isValidLicenseUrl(url) {
+  const pattern = /^https?:\/\/eclipse\.caam\.gov\.my\/ELICENSING\/userprofileqr\.do\?m=viewMyDigitalLicenseQR&personid=\d+&key=[a-fA-F0-9]{32}&codekey=\d+$/i;
+  return pattern.test(url);
+}
+
 // Global state
 let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 let html5QrcodeScanner = null;
@@ -229,8 +235,11 @@ function startScanner() {
   html5QrcodeScanner = new Html5Qrcode("qr-reader");
 
   const qrCodeSuccessCallback = (decodedText) => {
-    if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
-      processLicenseUrl(decodedText);
+//    if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
+//      processLicenseUrl(decodedText);
+      if (isValidLicenseUrl(decodedText)) {
+    processLicenseUrl(decodedText);
+    
     } else {
       showError("Invalid Eclipse QR code. Please try again.");
     }
@@ -266,12 +275,21 @@ function stopScanner() {
 }
 
 function handleManualUrl() {
+//  const urlInput = document.getElementById("manual-url-input").value.trim();
+//  if (!urlInput) {
+//    showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
+//    return;
+//  }
+//  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
+//    showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
+//    return;
+//  }
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
     showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
     return;
   }
-  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
+  if (!isValidLicenseUrl(urlInput)) {
     showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
     return;
   }
