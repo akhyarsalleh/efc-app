@@ -373,7 +373,7 @@ function renderResults(results) {
       qRow.innerHTML = `
         <div class="flex-grow pr-4">
           <div class="font-semibold text-slate-800 text-sm md:text-base">${q.name}</div>
-          <div class="text-xs text-slate-500">Expiry: ${q.dateText || "No Expiry"}</div>
+          <div class="text-xs text-slate-500">Expiry:<span class="uppercase text-bold"> ${q.dateText || "No Expiry"}</span></div>
         </div>
         <div class="flex-shrink-0 text-right">
           ${statusHtml}
