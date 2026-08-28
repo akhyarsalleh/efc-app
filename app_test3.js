@@ -26,6 +26,11 @@ function initApp() {
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
 
+  // --- NEW: Connection Status Event Listeners ---
+  window.addEventListener("online", updateNetworkStatus);
+  window.addEventListener("offline", updateNetworkStatus);
+  updateNetworkStatus(); // Evaluate active status on application launch
+
   // --- NEW: Close history accordion when clicking anywhere outside of it ---
   document.addEventListener("click", (event) => {
     const historyDetails = document.getElementById("history-details");
@@ -44,6 +49,43 @@ function initApp() {
   // Initial render of cached list
   renderHistoryList();
 }
+
+
+// Global Connection State Controller
+function updateNetworkStatus() {
+  const isOnline = navigator.onLine;
+  const overlay = document.getElementById("offline-overlay");
+  const startScanBtn = document.getElementById("start-scan-btn");
+  const submitUrlBtn = document.getElementById("submit-url-btn");
+  const manualInput = document.getElementById("manual-url-input");
+
+  if (overlay) {
+    if (isOnline) {
+      overlay.classList.add("hidden");
+    } else {
+      overlay.classList.remove("hidden");
+      stopScanner(); // Auto-stop active camera stream if device falls offline to conserve resources
+    }
+  }
+
+  // Gracefully disable/restore network inputs based on connection availability
+  if (startScanBtn) {
+    startScanBtn.disabled = !isOnline;
+    startScanBtn.classList.toggle("opacity-50", !isOnline);
+    startScanBtn.classList.toggle("cursor-not-allowed", !isOnline);
+  }
+  if (submitUrlBtn) {
+    submitUrlBtn.disabled = !isOnline;
+    submitUrlBtn.classList.toggle("opacity-50", !isOnline);
+    submitUrlBtn.classList.toggle("cursor-not-allowed", !isOnline);
+  }
+  if (manualInput) {
+    manualInput.disabled = !isOnline;
+  }
+} //end of Global Connection State Controller
+
+
+
 
 // -----------------------------------------
 // UI Navigation / View State Management
