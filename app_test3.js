@@ -193,8 +193,31 @@ function startScanner() {
       showError("Invalid Eclipse QR code. Please try again.");
     }
   };
+//stable QR setting
+//  const config = { fps: 30, experimentalFeatures: { useBarCodeDetectorIfSupported: true } };
 
-  const config = { fps: 30, experimentalFeatures: { useBarCodeDetectorIfSupported: true } };
+//  html5QrcodeScanner.start(
+//    { facingMode: "environment" },
+//    config,
+//    qrCodeSuccessCallback,
+//    () => { /* Ignore chatty scanning streams */ }
+//  ).catch(err => {
+//    showError("Camera Access Failed: " + err);
+//  }); //end of stable QR setting
+
+  // High-performance scanning configuration
+  const config = { 
+    fps: 30, 
+    // Restricts scanning engine focus area to match our HTML HUD bounding box perfectly
+    qrbox: (width, height) => {
+      const size = Math.min(width, height) * 0.7; // Limit to matching 70% of viewport width
+      return { width: size, height: size };
+    },
+    aspectRatio: 1.0, // Restricts camera feed aspect ratio to prevent shape distortion
+    experimentalFeatures: { 
+      useBarCodeDetectorIfSupported: true // Harnesses native hardware acceleration on iOS/Android
+    } 
+  };
 
   html5QrcodeScanner.start(
     { facingMode: "environment" },
@@ -203,7 +226,8 @@ function startScanner() {
     () => { /* Ignore chatty scanning streams */ }
   ).catch(err => {
     showError("Camera Access Failed: " + err);
-  });
+  }); //end of new enhancement
+  
 }
 
 function stopScanner() {
