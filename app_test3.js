@@ -208,11 +208,14 @@ function startScanner() {
   // High-performance scanning configuration
   const config = { 
     fps: 30, 
-    // Restricts scanning engine focus area to match our HTML HUD bounding box perfectly
-    //qrbox: (width, height) => {
-    //  const size = Math.min(width, height) * 0.7; // Limit to matching 70% of viewport width
-    //  return { width: size, height: size };
-    //},
+    qrbox: (width, height) => {
+      // Matches the exact 70% viewport width/height of our custom HTML HUD overlay
+      const size = Math.min(width, height) * 0.7; 
+      return { 
+        width: Math.floor(size), 
+        height: Math.floor(size) 
+      };
+    },
     aspectRatio: 1.0, // Restricts camera feed aspect ratio to prevent shape distortion
     experimentalFeatures: { 
       useBarCodeDetectorIfSupported: true // Harnesses native hardware acceleration on iOS/Android
