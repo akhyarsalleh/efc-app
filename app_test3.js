@@ -226,6 +226,10 @@ function startScanner() {
   const qrContainer = document.getElementById("qr-reader-container");
   if (qrContainer) qrContainer.classList.remove("hidden");
 
+  // --- NEW: Hide recent history tab when camera active ---
+  const historyWrapper = document.getElementById("history-card-wrapper");
+  if (historyWrapper) historyWrapper.classList.add("hidden"); //end
+
   const startBtn = document.getElementById("start-scan-btn");
   if (startBtn) startBtn.classList.add("hidden");
   const stopBtn = document.getElementById("stop-scan-btn");
@@ -263,6 +267,11 @@ function stopScanner() {
       html5QrcodeScanner = null;
       const qrContainer = document.getElementById("qr-reader-container");
       if (qrContainer) qrContainer.classList.add("hidden");
+
+      // --- NEW: Restore recent history tab when camera stops ---
+      const historyWrapper = document.getElementById("history-card-wrapper");
+      if (historyWrapper) historyWrapper.classList.remove("hidden");//end
+      
       const startBtn = document.getElementById("start-scan-btn");
       if (startBtn) startBtn.classList.remove("hidden");
       const stopBtn = document.getElementById("stop-scan-btn");
