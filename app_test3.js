@@ -164,7 +164,10 @@ function saveToHistory(results, originalUrl) {
   // Preserve the full Date & Time string (e.g., "26 Aug 2026 14:30")
   const fullDateTime = results.scanTime
     ? results.scanTime
-    : new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', '');
+    : new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+    .replace(', ', ', ')    // Replaces standard comma separator (Chrome/Firefox) with " - "
+    .replace(' at ', ', ')  // Replaces Safari's "at" separator with " - "
+    .replace(',', ', ');    // Fallback safety separator
 
 
   const record = {
