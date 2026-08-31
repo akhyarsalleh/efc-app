@@ -157,9 +157,15 @@ function showError(msg) {
 // -----------------------------------------
 function saveToHistory(results, originalUrl) {
   // Extract only the 24H clock time from scanTime (e.g., "14:30")
-  const timeOnly = results.scanTime
-    ? results.scanTime.split(' ').pop()
-    : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+//  const timeOnly = results.scanTime
+//    ? results.scanTime.split(' ').pop()
+//    : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  // Preserve the full Date & Time string (e.g., "26 Aug 2026 14:30")
+  const fullDateTime = results.scanTime
+    ? results.scanTime
+    : new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', '');
+
 
   const record = {
     id: results.pilotDetails.licenseNo || Date.now().toString(),
@@ -168,7 +174,7 @@ function saveToHistory(results, originalUrl) {
     overallStatus: results.overallStatus,
     url: originalUrl,
     resultsData: results,
-    timestamp: timeOnly
+    timestamp: fullDateTime //timeOnly
   };
 
   scanHistory = scanHistory.filter(item => item.id !== record.id);
