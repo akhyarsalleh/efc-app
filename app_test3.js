@@ -230,6 +230,12 @@ function startScanner() {
   const historyWrapper = document.getElementById("history-card-wrapper");
   if (historyWrapper) historyWrapper.classList.add("hidden"); //end
 
+  const customDivider = document.getElementById("cust_div");
+  if (customDivider) customDivider.classList.add("hidden"); //end
+
+  const manForm = document.getElementById("manual_form");
+  if (manForm) manForm.classList.add("hidden"); //end
+
   const startBtn = document.getElementById("start-scan-btn");
   if (startBtn) startBtn.classList.add("hidden");
   const stopBtn = document.getElementById("stop-scan-btn");
@@ -271,6 +277,12 @@ function stopScanner() {
       // --- NEW: Restore recent history tab when camera stops ---
       const historyWrapper = document.getElementById("history-card-wrapper");
       if (historyWrapper) historyWrapper.classList.remove("hidden");//end
+
+      const customDivider = document.getElementById("cust_div");
+      if (customDivider) customDivider.classList.remove("hidden"); //end
+
+      const manForm = document.getElementById("manual_form");
+      if (manForm) manForm.classList.remove("hidden"); //end
       
       const startBtn = document.getElementById("start-scan-btn");
       if (startBtn) startBtn.classList.remove("hidden");
@@ -295,11 +307,11 @@ function handleManualUrl() {
 //  }
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
-    showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid eCLIPSE licence page URL");
     return;
   }
   if (!isValidLicenseUrl(urlInput)) {
-    showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid eCLIPSE licence page URL");
     return;
   }
   processLicenseUrl(urlInput);
