@@ -5,9 +5,23 @@ const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Validates whether a scanned/entered URL matches the official CAAM Licence QR pattern
+//function isValidLicenseUrl(url) {
+//  const pattern = /^https?:\/\/eclipse\.caam\.gov\.my\/ELICENSING\/userprofileqr\.do\?m=viewMyDigitalLicenseQR&personid=\d+&key=[a-fA-F0-9]{32}&codekey=\d+$/i;
+//  return pattern.test(url);
+//}
+
+// Validates CAAM Digital Licence URLs while ignoring hidden whitespace/newlines
 function isValidLicenseUrl(url) {
+  if (!url) return false;
+  
+  // 1. Clean the input first to remove hidden QR artifacts (\n, \r, spaces)
+  const cleanUrl = url.trim();
+
+  // 2. Strict Pattern: Protocol + Domain + Path + Required Auth Parameters
+  // personid (digits), key (32-char hex), and codekey (digits)
   const pattern = /^https?:\/\/eclipse\.caam\.gov\.my\/ELICENSING\/userprofileqr\.do\?m=viewMyDigitalLicenseQR&personid=\d+&key=[a-fA-F0-9]{32}&codekey=\d+$/i;
-  return pattern.test(url);
+  
+  return pattern.test(cleanUrl);
 }
 
 // Global state
@@ -256,9 +270,10 @@ function startScanner() {
   const qrCodeSuccessCallback = (decodedText) => {
 //    if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
 //      processLicenseUrl(decodedText);
-      if (isValidLicenseUrl(decodedText)) {
-    processLicenseUrl(decodedText);
-    
+     // Use the helper to validate the cleaned string
+  if (isValidLicenseUrl(decodedText)) {
+    // Pass the trimmed version to the processor
+    processLicenseUrl(decodedText.trim()); 
     } else {
       showError("Invalid Eclipse QR code. Please try again.");
     }
@@ -315,15 +330,17 @@ function handleManualUrl() {
 //    return;
 //  }
   const urlInput = document.getElementById("manual-url-input").value.trim();
+  
   if (!urlInput) {
-    showError("Please enter a valid eCLIPSE licence page URL");
+    showError("Please paste a valid eCLIPSE licence page URL.");
     return;
   }
-  if (!isValidLicenseUrl(urlInput)) {
-    showError("Please enter a valid eCLIPSE licence page URL");
-    return;
+
+  if (isValidLicenseUrl(urlInput)) {
+    processLicenseUrl(urlInput);
+  } else {
+    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
   }
-  processLicenseUrl(urlInput);
 }
 
 function openOriginalLicense() {
