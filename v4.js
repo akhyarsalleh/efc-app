@@ -8,6 +8,7 @@ const DEFAULT_THRESHOLD = 30; // Days warning threshold
 let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 //let html5QrcodeScanner = null;
 let qrScanner = null; // Replaced html5QrcodeScanner with QrScanner object
+QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
 let lastScannedUrl = "";
 
 
@@ -264,7 +265,8 @@ function startScanner() {
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
       highlightCodeOutline: true,  // Outlines detected QR codes in green
-      maxScansPerSecond: 10
+      maxScansPerSecond: 25
+      preferredCamera: 'environment' // Lock onto the primary rear-facing lens
     }
   );
 
