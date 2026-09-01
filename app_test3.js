@@ -11,8 +11,8 @@ const DEFAULT_THRESHOLD = 30; // Days warning threshold
 //}
 
 // Validates CAAM Digital Licence URLs while ignoring hidden whitespace/newlines
-function isValidLicenseUrl(url) {
-  if (!url) return false;
+//function isValidLicenseUrl(url) {
+//  if (!url) return false;
   
   // Clean up any trailing spaces, invisible line-breaks, and unify casing
 //  const cleanUrl = url.trim().toLowerCase();
@@ -24,7 +24,7 @@ function isValidLicenseUrl(url) {
 //  const hasLicensingPath = cleanUrl.includes("/elicensing/") || cleanUrl.includes("userprofileqr.do");
   
 //  return hasOfficialDomain && hasLicensingPath;
-}
+//}
 
 // Global state
 let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
@@ -339,11 +339,11 @@ function handleManualUrl() {
 //    return;
 //  }
 
-  if (isValidLicenseUrl(urlInput)) {
+//  if (isValidLicenseUrl(urlInput)) {
     processLicenseUrl(urlInput);
-  } else {
-    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
-  }
+//  } else {
+//    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
+//  }
 }
 
 function openOriginalLicense() {
