@@ -4,28 +4,6 @@
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
-// Validates whether a scanned/entered URL matches the official CAAM Licence QR pattern
-//function isValidLicenseUrl(url) {
-//  const pattern = /^https?:\/\/eclipse\.caam\.gov\.my\/ELICENSING\/userprofileqr\.do\?m=viewMyDigitalLicenseQR&personid=\d+&key=[a-fA-F0-9]{32}&codekey=\d+$/i;
-//  return pattern.test(url);
-//}
-
-// Validates CAAM Digital Licence URLs while ignoring hidden whitespace/newlines
-//function isValidLicenseUrl(url) {
-//  if (!url) return false;
-  
-  // Clean up any trailing spaces, invisible line-breaks, and unify casing
-//  const cleanUrl = url.trim().toLowerCase();
-  
-  // 1. Verify the URL contains the official CAAM portal domain
-//  const hasOfficialDomain = cleanUrl.includes("eclipse.caam.gov.my");
-  
-  // 2. Verify it actually points to the licensing portal or QR checker endpoint
-//  const hasLicensingPath = cleanUrl.includes("/elicensing/") || cleanUrl.includes("userprofileqr.do");
-  
-//  return hasOfficialDomain && hasLicensingPath;
-//}
-
 // Global state
 let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 let html5QrcodeScanner = null;
@@ -218,7 +196,7 @@ function renderHistoryList() {
       <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType} • Scanned at ${item.timestamp} LT</span>
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType} • ${item.timestamp} LT</span>
         </div>
         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
@@ -272,11 +250,6 @@ function startScanner() {
   const qrCodeSuccessCallback = (decodedText) => {
     if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
       processLicenseUrl(decodedText);
-     // Clean hidden spaces and newlines from the scan stream
-//      const cleanScannedText = decodedText.trim();
-
-//      if (isValidLicenseUrl(cleanScannedText)) {
-//        processLicenseUrl(cleanScannedText);
     } else {
       showError("Invalid Eclipse QR code. Please try again.");
     }
@@ -332,18 +305,7 @@ function handleManualUrl() {
     showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
     return;
   }
-//  const urlInput = document.getElementById("manual-url-input").value.trim();
-  
-//  if (!urlInput) {
-//    showError("Please paste a CAAM Digital Licence URL.");
-//    return;
-//  }
-
-  if (isValidLicenseUrl(urlInput)) {
     processLicenseUrl(urlInput);
-  } else {
-    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
-  }
 }
 
 function openOriginalLicense() {
