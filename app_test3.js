@@ -348,7 +348,7 @@ function handleManualUrl() {
 
 function openOriginalLicense() {
   if (lastScannedUrl) {
-    window.open(lastScannedUrl, "_blank");
+    window.open(lastScannedUrl, "_self");
   }
 }
 
