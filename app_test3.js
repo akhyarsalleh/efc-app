@@ -14,14 +14,16 @@ const DEFAULT_THRESHOLD = 30; // Days warning threshold
 function isValidLicenseUrl(url) {
   if (!url) return false;
   
-  // 1. Clean the input first to remove hidden QR artifacts (\n, \r, spaces)
-  const cleanUrl = url.trim();
-
-  // 2. Strict Pattern: Protocol + Domain + Path + Required Auth Parameters
-  // personid (digits), key (32-char hex), and codekey (digits)
-  const pattern = /^https?:\/\/eclipse\.caam\.gov\.my\/ELICENSING\/userprofileqr\.do\?m=viewMyDigitalLicenseQR&personid=\d+&key=[a-fA-F0-9]{32}&codekey=\d+$/i;
+  // Clean up any trailing spaces, invisible line-breaks, and unify casing
+  const cleanUrl = url.trim().toLowerCase();
   
-  return pattern.test(cleanUrl);
+  // 1. Verify the URL contains the official CAAM portal domain
+  const hasOfficialDomain = cleanUrl.includes("eclipse.caam.gov.my");
+  
+  // 2. Verify it actually points to the licensing portal or QR checker endpoint
+  const hasLicensingPath = cleanUrl.includes("/elicensing/") || cleanUrl.includes("userprofileqr.do");
+  
+  return hasOfficialDomain && hasLicensingPath;
 }
 
 // Global state
@@ -270,10 +272,11 @@ function startScanner() {
   const qrCodeSuccessCallback = (decodedText) => {
 //    if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
 //      processLicenseUrl(decodedText);
-     // Use the helper to validate the cleaned string
-  if (isValidLicenseUrl(decodedText)) {
-    // Pass the trimmed version to the processor
-    processLicenseUrl(decodedText.trim()); 
+     // Clean hidden spaces and newlines from the scan stream
+      const cleanScannedText = decodedText.trim();
+
+      if (isValidLicenseUrl(cleanScannedText)) {
+        processLicenseUrl(cleanScannedText);
     } else {
       showError("Invalid Eclipse QR code. Please try again.");
     }
@@ -332,7 +335,7 @@ function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   
   if (!urlInput) {
-    showError("Please paste a valid eCLIPSE licence page URL.");
+    showError("Please paste a CAAM Digital Licence URL.");
     return;
   }
 
