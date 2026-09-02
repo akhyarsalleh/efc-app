@@ -1,4 +1,6 @@
 // app.js - Licence Scanner App Client
+// Version: 1.4a (BETA) Release: 09.26
+// Developed by: Capt. Mohd Sallehuddin Zaidy
 
 // Configuration - Replace with your deployed Vercel URL
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
