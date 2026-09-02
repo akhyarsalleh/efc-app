@@ -1,12 +1,18 @@
 // app.js - Licence Scanner App Client
 
 // Configuration - Replace with your deployed Vercel URL
-const PROXY_URL = 'https://efc-app.vercel.app/api/proxy'; // Relative path if hosted on same domain, or external URL e.g. 'https://my-proxy.vercel.app/api/proxy'
+const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Global state
-let html5QrcodeScanner = null;
+let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
+let qrScanner = null; // Replaced html5QrcodeScanner with QrScanner object
 let lastScannedUrl = "";
+
+// Tells Nimiq to offload decoding to your local subfolder worker
+if (typeof QrScanner !== 'undefined') {
+  QrScanner.WORKER_PATH = 'js/qr-scanner-worker.min.js';
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   initApp();
@@ -24,34 +30,113 @@ function initApp() {
   if (submitUrlBtn) submitUrlBtn.addEventListener("click", handleManualUrl);
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
+
+  // --- NEW: Connection Status Event Listeners ---
+  window.addEventListener("online", updateNetworkStatus);
+  window.addEventListener("offline", updateNetworkStatus);
+  updateNetworkStatus(); // Evaluate active status on application launch
+
+  // --- NEW: Close history accordion when clicking anywhere outside of it ---
+  document.addEventListener("click", (event) => {
+    const historyDetails = document.getElementById("history-details");
+    const historyWrapper = document.getElementById("history-card-wrapper");
+    
+    // Check if the history card exists and is currently open
+    if (historyDetails && historyDetails.hasAttribute("open")) {
+      // If the clicked element is NOT inside the history card wrapper, close it
+      if (historyWrapper && !historyWrapper.contains(event.target)) {
+        historyDetails.removeAttribute("open");
+      }
+    }
+  });
+
+
+  // Initial render of cached list
+  renderHistoryList();
 }
+
+
+// Global Connection State Controller
+function updateNetworkStatus() {
+  const isOnline = navigator.onLine;
+  const overlay = document.getElementById("offline-overlay");
+  const startScanBtn = document.getElementById("start-scan-btn");
+  const submitUrlBtn = document.getElementById("submit-url-btn");
+  const manualInput = document.getElementById("manual-url-input");
+
+  if (overlay) {
+    if (isOnline) {
+      overlay.classList.add("hidden");
+    } else {
+      overlay.classList.remove("hidden");
+      stopScanner(); // Auto-stop active camera stream if device falls offline to conserve resources
+    }
+  }
+
+  // Gracefully disable/restore network inputs based on connection availability
+  if (startScanBtn) {
+    startScanBtn.disabled = !isOnline;
+    startScanBtn.classList.toggle("opacity-50", !isOnline);
+    startScanBtn.classList.toggle("cursor-not-allowed", !isOnline);
+  }
+  if (submitUrlBtn) {
+    submitUrlBtn.disabled = !isOnline;
+    submitUrlBtn.classList.toggle("opacity-50", !isOnline);
+    submitUrlBtn.classList.toggle("cursor-not-allowed", !isOnline);
+  }
+  if (manualInput) {
+    manualInput.disabled = !isOnline;
+  }
+} //end of Global Connection State Controller
+
+
+
 
 // -----------------------------------------
 // UI Navigation / View State Management
 // -----------------------------------------
-
 function showView(viewId) {
   document.querySelectorAll(".app-view").forEach(view => {
     view.classList.add("hidden");
   });
   const targetView = document.getElementById(viewId);
   if (targetView) targetView.classList.remove("hidden");
+
+  // Toggle history card visibility: Only display it when on the primary scanner-view page
+  const historyWrapper = document.getElementById("history-card-wrapper");
+  if (historyWrapper) {
+    if (viewId === "scanner-view") {
+      historyWrapper.classList.remove("hidden");
+    } else {
+      historyWrapper.classList.add("hidden");
+    }
+  }
+
+  // Auto-close history tab on every navigation
+  const historyDetails = document.getElementById("history-details");
+  if (historyDetails) historyDetails.removeAttribute("open");
 }
 
 function showScannerView() {
   stopScanner();
-  document.getElementById("error-message").innerText = "";
-  document.getElementById("manual-url-input").value = "";
-
+  const errorMsg = document.getElementById("error-message");
+  if (errorMsg) errorMsg.innerText = "";
+  const manualInput = document.getElementById("manual-url-input");
+  if (manualInput) manualInput.value = "";
+  
   // Reset body background to original default Slate-50 when returning to scanner
   document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
   document.body.classList.add("bg-slate-50");
-  
+
+  renderHistoryList();
   showView("scanner-view");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function showLoading(msg = "Fetching digital licence...") {
-  document.getElementById("loading-text").innerText = msg;
+function showLoading(msg = "Fetching digital license...") {
+  const loadingText = document.getElementById("loading-text");
+  if (loadingText) loadingText.innerText = msg;
   showView("loading-view");
 }
 
@@ -59,7 +144,6 @@ function showError(msg) {
   stopScanner();
   const errMsg = document.getElementById("error-message");
   if (errMsg) {
-    //errMsg.innerText = msg;
     errMsg.innerHTML = msg;
   } else {
     alert(msg);
@@ -68,227 +152,344 @@ function showError(msg) {
 }
 
 // -----------------------------------------
-// QR Scanner Controller
+// Scan History Controllers
 // -----------------------------------------
+function saveToHistory(results, originalUrl) {
+  // Extract only the 24H clock time from scanTime (e.g., "14:30")
+//  const timeOnly = results.scanTime
+//    ? results.scanTime.split(' ').pop()
+//    : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-function startScanner() {
-  document.getElementById("error-message").innerText = "";
-  const qrContainer = document.getElementById("qr-reader-container");
-  qrContainer.classList.remove("hidden");
-  
-  document.getElementById("start-scan-btn").classList.add("hidden");
-  document.getElementById("stop-scan-btn").classList.remove("hidden");
+  // Preserve the full Date & Time string (e.g., "26 Aug 2026 14:30")
+  const fullDateTime = results.scanTime
+    ? results.scanTime
+    : new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+    .replace(', ', ', ')    // Replaces standard comma separator (Chrome/Firefox) with " - "
+    .replace(' at ', ', ')  // Replaces Safari's "at" separator with " - "
+    .replace(',', ', ');    // Fallback safety separator
 
-  // Initialize html5-qrcode
-  html5QrcodeScanner = new Html5Qrcode("qr-reader");
-  
-  const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-    // Valid URL scanned
-    if (decodedText.startsWith("http://eclipse.caam.gov.my") || decodedText.startsWith("https://eclipse.caam.gov.my")) {
-      processLicenseUrl(decodedText);
-    } else {
-   //   showError("Invalid QR Code.<br>Please try again." + decodedText);
-      showError("Invalid Eclipse QR code.<br>Please try again.");
-    }
+
+  const record = {
+    id: results.pilotDetails.licenseNo || Date.now().toString(),
+    name: results.pilotDetails.name,
+    licenseType: results.pilotDetails.licenseType,
+    overallStatus: results.overallStatus,
+    url: originalUrl,
+    resultsData: results,
+    timestamp: fullDateTime //timeOnly
   };
 
-  //const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  const config = { fps: 30, experimentalFeatures: {
-    useBarCodeDetectorIfSupported: true // Offloads decoding to native OS hardware APIs
-  } };
+  scanHistory = scanHistory.filter(item => item.id !== record.id);
+  scanHistory.unshift(record);
+  if (scanHistory.length > 10) scanHistory.pop();
+  localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+  renderHistoryList();
+}
 
-  html5QrcodeScanner.start(
-    { facingMode: "environment" },
-    config,
-    qrCodeSuccessCallback,
-    (errorMessage) => {
-      // Direct scanning logs are chatty and can be ignored
+function renderHistoryList() {
+  const container = document.getElementById("history-list");
+  if (!container) return;
+  if (scanHistory.length === 0) {
+    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
+    return;
+  }
+
+  container.innerHTML = scanHistory.map(item => {
+    const dotColor = item.overallStatus === "EXPIRED" ? "bg-red-500" : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
+    const safeId = item.id.replace(/'/g, "\\'");
+    return `
+      <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
+        <div class="flex flex-col text-left">
+          <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
+          <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
+        </div>
+        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
+      </div>
+    `;
+  }).join('');
+}
+
+window.loadHistoricalRecord = function(id) {
+  const match = scanHistory.find(item => item.id === id);
+  if (match) {
+    lastScannedUrl = match.url; // Ensures "Open Original" button works
+    renderResults(match.resultsData);
+  }
+};
+
+window.clearHistory = function() {
+  if (confirm("Are you sure you want to clear all recent compliance checks from this device?")) {
+    scanHistory = [];
+    localStorage.removeItem("scan_history");
+    renderHistoryList();
+  }
+};
+
+// -----------------------------------------
+// QR Scanner Controller
+// -----------------------------------------
+function startScanner() {
+    const errorMsg = document.getElementById("error-message");
+  if (errorMsg) errorMsg.innerText = "";
+  const qrContainer = document.getElementById("qr-reader-container");
+  if (qrContainer) qrContainer.classList.remove("hidden");
+
+  // --- NEW: Hide recent history tab when camera active ---
+  const historyWrapper = document.getElementById("history-card-wrapper");
+  if (historyWrapper) historyWrapper.classList.add("hidden"); //end
+
+  const customDivider = document.getElementById("cust_div");
+  if (customDivider) customDivider.classList.add("hidden"); //end
+
+  const manForm = document.getElementById("manual_form");
+  if (manForm) manForm.classList.add("hidden"); //end
+
+  const startBtn = document.getElementById("start-scan-btn");
+  if (startBtn) startBtn.classList.add("hidden");
+
+  const stopBtn = document.getElementById("stop-scan-btn");
+  if (stopBtn) stopBtn.classList.remove("hidden");
+
+  const videoElem = document.getElementById("qr-video");
+  if (!videoElem) {
+    showError("Camera feed element not found.");
+    return;
+  }
+
+  // Initialize Nimiq QR Scanner with continuous autofocus and high-frequency checks
+  qrScanner = new QrScanner(
+    videoElem,
+    result => {
+      // Safely check if result is an object (v2.x) or string (v1.x) to prevent crashes
+      const decodedText = typeof result === 'object' ? result.data : result;
+      const cleanScannedText = (decodedText || "").trim();
+      processLicenseUrl(cleanScannedText);
+    },
+    {
+      highlightScanRegion: true,   // Draws a focused scan square on screen
+      highlightCodeOutline: true,  // Outlines detected QR codes in green
+      maxScansPerSecond: 25,       // High sample rate for instant locks
+      preferredCamera: 'environment', // Lock onto primary rear autofocus lens
+      
+      // Custom 800x800 resolution gate to ensure dense cards decode flawlessly
+      calculateScanRegion: (video) => {
+        const smallerDimension = Math.min(video.videoWidth, video.videoHeight);
+        const scanRegionSize = Math.round(smallerDimension * 0.85);
+        return {
+          x: Math.round((video.videoWidth - scanRegionSize) / 2),
+          y: Math.round((video.videoHeight - scanRegionSize) / 2),
+          width: scanRegionSize,
+          height: scanRegionSize,
+          downScaledWidth: 800,
+          downScaledHeight: 800
+        };
+      }
     }
-  ).catch(err => {
+  );
+
+  qrScanner.start().catch(err => {
     showError("Camera Access Failed: " + err);
   });
 }
 
 function stopScanner() {
-  if (html5QrcodeScanner) {
-    html5QrcodeScanner.stop().then(() => {
-      html5QrcodeScanner = null;
-      document.getElementById("qr-reader-container").classList.add("hidden");
-      document.getElementById("start-scan-btn").classList.remove("hidden");
-      document.getElementById("stop-scan-btn").classList.add("hidden");
-    }).catch(err => {
-      console.warn("Failed to stop scanner cleanly:", err);
-    });
+  if (qrScanner) {
+    // Destroys the camera hardware stream cleanly
+    qrScanner.destroy();
+    qrScanner = null;
+
+    const qrContainer = document.getElementById("qr-reader-container");
+    if (qrContainer) qrContainer.classList.add("hidden");
+
+    // --- NEW: Restore recent history tab when camera stops ---
+    const historyWrapper = document.getElementById("history-card-wrapper");
+    if (historyWrapper) historyWrapper.classList.remove("hidden");//end
+
+    const customDivider = document.getElementById("cust_div");
+    if (customDivider) customDivider.classList.remove("hidden"); //end
+
+    const manForm = document.getElementById("manual_form");
+    if (manForm) manForm.classList.remove("hidden"); //end
+
+    const startBtn = document.getElementById("start-scan-btn");
+    if (startBtn) startBtn.classList.remove("hidden");
+
+    const stopBtn = document.getElementById("stop-scan-btn");
+    if (stopBtn) stopBtn.classList.add("hidden");
   }
+  return Promise.resolve();
 }
 
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
-    showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid licence page URL");
     return;
   }
   if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-    showError("Please enter a valid <br> https://eclipse.caam.gov.my/ URL");
+    showError("Please enter a valid licence page URL");
     return;
   }
-  processLicenseUrl(urlInput);
+//  const urlInput = document.getElementById("manual-url-input").value.trim();
+  
+//  if (!urlInput) {
+//    showError("Please paste a CAAM Digital Licence URL.");
+//    
+
+//  if (isValidLicenseUrl(urlInput)) {
+    processLicenseUrl(urlInput);
+//  } else {
+//    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
+//  }
 }
 
 function openOriginalLicense() {
   if (lastScannedUrl) {
-    window.open(lastScannedUrl, "_self");
+    window.open(lastScannedUrl, "_blank");
   }
 }
 
 // -----------------------------------------
 // License Fetch & Proxy Integration
 // -----------------------------------------
-
+//async function processLicenseUrl(url) { // unquote if delete new check below
 async function processLicenseUrl(url) {
-  lastScannedUrl = url;
-  stopScanner();
-  showLoading("Fetching digital licence...");
+  if (!url) {
+    showError("Invalid or non-eCLIPSE QR");
+    return;
+  }
 
+  // CENTRAL DUAL-PATTERN GATE: Accepts both QR redirects and Manual URLs, blocks typo domains
+  const lowerUrl = url.trim().toLowerCase();
+  
+  // 1. Hostname validation (completely blocks lookalike "ecilpse" and phishing domains)
+  const isOfficialDomain = lowerUrl.includes("eclipse.caam.gov.my");
+
+  // 2. Path validation (accepts either the manual viewing path OR the physical QR redirection path)
+  const isValidPath = lowerUrl.includes("/elicensing/userprofileqr.do") || 
+                      lowerUrl.includes("/digitallicence/info.do");
+
+  if (!isOfficialDomain || !isValidPath) {
+    showError("Invalid or non-eCLIPSE QR");
+    return;
+  } //end new check
+
+  // Validation passed! Proceed with proxy fetch sequence
+
+  lastScannedUrl = url;
+  await stopScanner();
+  showLoading("Fetching digital license...");
+// Capture local date & time in 24-hour format
+  const scanTime = new Date().toLocaleString('en-GB', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
+  }).replace(', ', ', ')    // Replaces standard comma separator (Chrome/Firefox) with " - "
+    .replace(' at ', ', ')  // Replaces Safari's "at" separator with " - "
+    .replace(',', ', ');    // Fallback safety separator
+
+  
   try {
     const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
     const response = await fetch(fetchUrl);
-    
     if (!response.ok) {
-      throw new Error(`Failed to fetch license content (Status ${response.status})`);
+      throw new Error(`Failed to fetch license page (Status: ${response.status})`);
     }
-
-    const htmlContent = await response.text();
-    showLoading("Parsing licence qualifications...");
-    
-    // Parse using DOMParser
+    const htmlText = await response.text();
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
+    const doc = parser.parseFromString(htmlText, "text/html");
+    const results = parseLicenseDOM(doc, DEFAULT_THRESHOLD);
     
-    const results = parseLicenseDOM(doc);
+    // Attach the timestamp to the results object so renderResults can see it
+    results.scanTime = scanTime; 
+    
+    saveToHistory(results, url);
     renderResults(results);
   } catch (error) {
     console.error("Processing error:", error);
-    //showError(`Error processing digital license: ${error.message}. Please verify proxy is active.`);
-    showError(`Error processing digital license:<br> ${error.message}.`);
+    showError(`Error processing digital license: ${error.message}.`);
   }
 }
 
 // -----------------------------------------
 // UI Rendering of Results
 // -----------------------------------------
-
-//amendment
-//function renderResults(results) {
-  // Set Pilot profile details
-  //document.getElementById("pilot-name").innerText = results.pilotDetails.name || "N/A";
-  //document.getElementById("licence-type").innerText = results.pilotDetails.licenseType || "N/A";
-  //document.getElementById("licence-number").innerText = results.pilotDetails.licenseNo || "N/A";
-//end of amendment
-
 function renderResults(results) {
-  // Set Pilot profile details [1]
+  // Render the last scanned date/time on the results page
+  const timeEl = document.getElementById("scan-timestamp");
+  if (timeEl) {
+    //timeEl.innerText = results.scanTime || "N/A";
+    timeEl.innerText = results.scanTime ? `${results.scanTime} LT` : "N/A";
+  }
+  
+  // Set Pilot profile details
   document.getElementById("pilot-name").innerText = results.pilotDetails.name || "N/A";
   document.getElementById("licence-type").innerText = results.pilotDetails.licenseType || "N/A";
   document.getElementById("licence-number").innerText = results.pilotDetails.licenseNo || "N/A";
 
   // --- SORT QUALIFICATIONS DYNAMICALLY ---
- if (results.qualifications && results.qualifications.length > 0) {
+  if (results.qualifications && results.qualifications.length > 0) {
     results.qualifications.sort((a, b) => {
       const getRank = (nameStr) => {
         const name = (nameStr || "").toUpperCase().trim();
-        
-        // 1. Validity Expire Date / Main License (ATPL, CPL, PPL, MPL, etc.)
-        if (
-          (name.includes("VALIDITY") && !name.includes("ISSUE")) || 
-          //name.includes("EXPIRE") || 
-          //name.includes("EXPIRY") || 
-          //name.includes("TAMAT") ||
-          //name.includes("LICENCE") ||
-          //name.includes("LICENSE") ||
-          name.includes("ATPL") ||
-          name.includes("CPL") ||
-          name.includes("PPL") ||
-          name.includes("MPL")
-        ) {
-          return 1;
-        }
-        // 2. Class 1 Medical
-        if (name.includes("CLASS 1") || name.includes("CLASS I") || name.includes("MEDICAL 1") || name.includes("MEDICAL I")) {
-          return 2;
-        }
-        // 3. Class 2 Medical
-        if (name.includes("CLASS 2") || name.includes("CLASS II") || name.includes("MEDICAL 2") || name.includes("MEDICAL II")) {
-          return 3;
-        }
-        // 4. RTOL / Radiotelephony
-        if (name.includes("RTOL") || name.includes("RADIOTELEPHONY") || name.includes("R/T") || name.includes("RADIO") || name.includes("TELEPHONY")) {
-          return 4;
-        }
-        // 5. English Language Proficiency (ELP)
-        if (name.includes("ELP") || name.includes("ENGLISH") || name.includes("LANGUAGE") || name.includes("PROFICIENCY")) {
-          return 5;
-        }
-        // 7. Instrument Rating (IR) - Pushed to the absolute bottom
-        if (name.includes("INSTRUMENT RATING") || name.includes("INSTRUMENT") || name === "IR") {
-          return 7;
-        }
-        // 6. Type Rating (Default fallback for airplane fleets like A320, B737)
+        if ((name.includes("VALIDITY") && !name.includes("ISSUE")) || name.includes("ATPL") || name.includes("CPL") || name.includes("PPL") || name.includes("MPL")) return 1;
+        if (name.includes("CLASS 1") || name.includes("CLASS I") || name.includes("MEDICAL 1") || name.includes("MEDICAL I")) return 2;
+        if (name.includes("CLASS 2") || name.includes("CLASS II") || name.includes("MEDICAL 2") || name.includes("MEDICAL II")) return 3;
+        if (name.includes("RTOL") || name.includes("RADIOTELEPHONY") || name.includes("R/T") || name.includes("RADIO") || name.includes("TELEPHONY")) return 4;
+        if (name.includes("ELP") || name.includes("ENGLISH") || name.includes("LANGUAGE") || name.includes("PROFICIENCY")) return 5;
+        if (name.includes("INSTRUMENT RATING") || name.includes("INSTRUMENT") || name === "IR") return 7;
         return 6;
       };
-
       return getRank(a.name) - getRank(b.name);
     });
   }
-//end of new amendment
-  
+
   // Set Overall Status Badge & Title Styling
   const statusBadge = document.getElementById("overall-status-badge");
   const resultHeader = document.getElementById("result-header");
   const overallMsg = document.getElementById("overall-message");
-
   statusBadge.className = "status-badge font-bold uppercase rounded px-4 py-2 text-white inline-block text-lg mt-2";
 
-  // 1. Reset any previous dynamic body background colors to clear old scan states
+  // Reset previous background colors
   document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
-  
+
   if (results.overallStatus === "EXPIRED") {
     statusBadge.innerText = "DO NOT FLY!";
     statusBadge.classList.add("bg-red-600");
     resultHeader.style.color = "#dc2626";
     resultHeader.innerText = "Validity Expired / Invalid";
-    document.body.classList.add("bg-red-100"); 
-    overallMsg.innerHTML = "One or more qualifications have lapsed.<br>Kindly contact Fleet Captains / SIPs.";
+    document.body.classList.add("bg-red-100");
+    overallMsg.innerHTML = "One or more qualifications have lapsed. Kindly contact Fleet Captains / SIPs.";
   } else if (results.overallStatus === "EXPIRING_SOON") {
     statusBadge.innerText = "FLY WITH CAUTION!";
     statusBadge.classList.add("bg-amber-500");
     resultHeader.style.color = "#d97706";
     resultHeader.innerText = "Validity Expiring Soon";
     document.body.classList.add("bg-orange-100");
-    overallMsg.innerHTML = "Some qualifications will expire soon.<br>Ensure they remain valid throughout the duty period.";
+    overallMsg.innerHTML = "Some qualifications will expire soon. Ensure they remain valid throughout the duty period.";
   } else {
     resultHeader.innerText = "Licence Valid";
     statusBadge.innerText = "HAVE A SAFE FLIGHT!";
     statusBadge.classList.add("bg-green-600");
     resultHeader.style.color = "#16a34a";
-    document.body.classList.add("bg-green-100"); 
+    document.body.classList.add("bg-green-100");
     overallMsg.innerHTML = "All qualifications and medical checks are valid.";
   }
 
-// Populate list of qualifications
+  // Populate list of qualifications
   const container = document.getElementById("qualifications-list");
   container.innerHTML = "";
 
   if (results.qualifications.length === 0) {
-    container.innerHTML = `
-      <div class="text-center text-slate-500 py-6">
-        No qualifications found on the scanned digital licence.
-      </div>`;
+    container.innerHTML = `<div class="text-center text-slate-500 py-6"> No qualifications found on the scanned digital license. </div>`;
   } else {
     results.qualifications.forEach(q => {
       const qRow = document.createElement("div");
       qRow.className = "border-b border-slate-100 last:border-b-0 py-3 flex items-center justify-between";
-      
+
       let statusHtml = "";
       if (q.status === "EXPIRED") {
         statusHtml = `<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded font-bold uppercase">Expired</span>`;
@@ -302,23 +503,24 @@ function renderResults(results) {
       qRow.innerHTML = `
         <div class="flex-grow pr-4">
           <div class="font-semibold text-slate-800 text-sm md:text-base">${q.name}</div>
-          <div class="text-xs text-slate-500">Expiry: ${q.dateText || "No Expiry"}</div>
+          <div class="text-xs text-slate-500">Expiry:<span class="uppercase text-bold"> ${q.dateText || "No Expiry"}</span></div>
         </div>
         <div class="flex-shrink-0 text-right">
           ${statusHtml}
         </div>
       `;
+
       container.appendChild(qRow);
     });
   }
 
+  // Switch UI view to results (Matches container id "result-view" in index_test.html)
   showView("result-view");
 }
 
 // -----------------------------------------
 // Core Parsing Engine (Adapted from checker.js)
 // -----------------------------------------
-
 function parseLicenseDate(dateStr) {
   if (!dateStr) return null;
   const trimmed = dateStr.trim();
@@ -538,14 +740,13 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     };
   }
 
+
   // --- Extract Pilot Details ---
   let pilotName = "";
   let licenseType = "";
   let licenseNo = "";
-
   const allElements = doc.querySelectorAll('td, th, b, span, div, p');
-  
-  // Extract Pilot Name
+
   for (let i = 0; i < allElements.length; i++) {
     if (isUnderPg2(allElements[i])) continue;
     const text = allElements[i].textContent.toUpperCase();
@@ -570,7 +771,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     }
   }
 
-  // Extract License Type & License Number
   let extractedFullType = "";
   for (let i = 0; i < allElements.length; i++) {
     if (isUnderPg2(allElements[i])) continue;
@@ -615,7 +815,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     }
   }
 
-  // Dictionary mapping full license type names to standard abbreviations
   function mapLicenseType(fullType) {
     if (!fullType) return "";
     const upper = fullType.toUpperCase().trim();
@@ -632,7 +831,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     return fullType;
   }
 
-  // Try to find the short licence type directly from the FCL table first
   let shortLicenseType = "";
   const tables = doc.querySelectorAll('table');
   for (let t = 0; t < tables.length; t++) {
@@ -641,7 +839,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const headers = table.querySelectorAll('th, td');
     let isFclTable = false;
     let licenceTypeColIndex = -1;
-    
     for (let h = 0; h < headers.length; h++) {
       const headerText = headers[h].textContent.toUpperCase();
       if (headerText.includes('LICENCE TYPE') || headerText.includes('JENIS LESEN')) {
@@ -654,7 +851,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         break;
       }
     }
-    
     if (isFclTable && licenceTypeColIndex !== -1) {
       const rows = table.querySelectorAll('tr');
       for (let r = 0; r < rows.length; r++) {
@@ -697,26 +893,17 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const card = cards[i];
     if (isUnderPg2(card)) continue;
     const cardText = card.textContent.toUpperCase();
-    
-    if (cardText.includes('MEDICAL EXPIRY DATE') || cardText.includes('TARIKH TAMAT TEMPOH PERUBATAN') ||
-        cardText.includes('LICENCE TYPE') || cardText.includes('VALIDITY EXPIRY DATE')) {
+    if (cardText.includes('MEDICAL EXPIRY DATE') || cardText.includes('TARIKH TAMAT TEMPOH PERUBATAN') || cardText.includes('LICENCE TYPE') || cardText.includes('VALIDITY EXPIRY DATE')) {
       continue;
     }
-    
     const cardNormalized = cardText.replace(/\s+/g, '');
     if (cardNormalized.includes('CLASS1(SC)') || cardNormalized.includes('CLASS1SC') || cardNormalized.includes('CLASS1(S.C.)')) {
       continue;
     }
-    
-    const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') ||
-                    card.querySelector('div[style*="font-weight: 500"]') ||
-                    card.querySelector('.fs-5');
+    const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') || card.querySelector('div[style*="font-weight: 500"]') || card.querySelector('.fs-5');
     const labelText = titleEl ? titleEl.textContent.trim() : "";
-    
-    const dateEl = card.querySelector('.text-uppercase b') ||
-                   card.querySelector('.fs-4 b, .fs-3 b');
+    const dateEl = card.querySelector('.text-uppercase b') || card.querySelector('.fs-4 b, .fs-3 b');
     const dateText = dateEl ? dateEl.textContent.trim() : "";
-    
     if (labelText && dateText) {
       if (shouldIgnore(dateEl)) continue;
       const parsedDate = parseLicenseDate(dateText);
@@ -731,24 +918,21 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const tr = rows[i];
     if (isUnderPg2(tr)) continue;
     const rowText = tr.textContent.toUpperCase();
-    
     const rowNormalized = rowText.replace(/\s+/g, '');
     if (rowNormalized.includes('CLASS1(SC)') || rowNormalized.includes('CLASS1SC') || rowNormalized.includes('CLASS1(S.C.)')) {
       continue;
     }
-    
     if (rowText.includes('LICENCE TYPE') || rowText.includes('VALIDITY EXPIRY DATE')) continue;
     if (rowText.includes('MEDICAL CLASS') || rowText.includes('KELAS PERUBATAN')) continue;
     if (rowText.includes('MEDICAL EXPIRY DATE') || rowText.includes('TARIKH TAMAT TEMPOH PERUBATAN')) continue;
-    
+
     const labelText = getLabelFromRow(tr);
     if (!labelText) continue;
-    
+
     const tds = getDirectChildCells(tr);
     for (let j = 0; j < tds.length; j++) {
       const tdText = tds[j].textContent.trim();
       const isDatePattern = /^\d{1,2}\s+[a-zA-Z]{3,10}\s+\d{4}$/.test(tdText) || tdText.toUpperCase() === 'NO EXPIRY';
-      
       if (isDatePattern) {
         if (shouldIgnore(tds[j])) continue;
         const parsedDate = parseLicenseDate(tdText);
@@ -770,7 +954,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         let dateText = el.textContent.trim();
         const tr = el.closest('tr');
         const card = el.closest('.card');
-        
         if (tr) {
           const rowNormalized = tr.textContent.toUpperCase().replace(/\s+/g, '');
           if (rowNormalized.includes('CLASS1(SC)') || rowNormalized.includes('CLASS1SC') || rowNormalized.includes('CLASS1(S.C.)')) continue;
@@ -781,15 +964,11 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         } else if (card) {
           const cardNormalized = card.textContent.toUpperCase().replace(/\s+/g, '');
           if (cardNormalized.includes('CLASS1(SC)') || cardNormalized.includes('CLASS1SC') || cardNormalized.includes('CLASS1(S.C.)')) continue;
-          const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') ||
-                          card.querySelector('div[style*="font-weight: 500"]') ||
-                          card.querySelector('.fs-5');
+          const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') || card.querySelector('div[style*="font-weight: 500"]') || card.querySelector('.fs-5');
           if (titleEl) labelText = titleEl.textContent.trim();
-          const dateEl = card.querySelector('.text-uppercase b') ||
-                         card.querySelector('.fs-4 b, .fs-3 b');
+          const dateEl = card.querySelector('.text-uppercase b') || card.querySelector('.fs-4 b, .fs-3 b');
           if (dateEl) dateText = dateEl.textContent.trim();
         }
-        
         if (!labelText) labelText = "Qualification";
         const key = labelText.toUpperCase().replace(/\s+/g, '');
         if (!qualificationData[key]) {
