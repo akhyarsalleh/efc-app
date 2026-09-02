@@ -279,6 +279,23 @@ function startScanner() {
       maxScansPerSecond: 25,       // High sample rate for instant locks
       preferredCamera: 'environment' // Lock onto primary rear autofocus lens
 
+      // 🚀 CUSTOM RESOLUTION OVERRIDE: Feeds a high-detail 800x800 frame to the decoder
+      calculateScanRegion: (video) => {
+        const smallerDimension = Math.min(video.videoWidth, video.videoHeight);
+        
+        // Expand scanner box to occupy 85% of the screen viewport
+        const scanRegionSize = Math.round(smallerDimension * 0.85);
+        
+        return {
+          x: Math.round((video.videoWidth - scanRegionSize) / 2),
+          y: Math.round((video.videoHeight - scanRegionSize) / 2),
+          width: scanRegionSize,
+          height: scanRegionSize,
+          // Overrides the default 400x400 limit to preserve high-contrast micro-modules
+          downScaledWidth: 800,
+          downScaledHeight: 800
+        };
+      }
   
       
     }
