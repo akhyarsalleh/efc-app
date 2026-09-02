@@ -263,23 +263,15 @@ function startScanner() {
       // Safely check if result is an object (v2.x) or string (v1.x) to prevent crashes
       const decodedText = typeof result === 'object' ? result.data : result;
       const cleanScannedText = (decodedText || "").trim();
-      //processLicenseUrl(cleanScannedText); -- unquote if deleting below check
-
-      // Run our balanced validation check
-      if (isValidLicenseUrl(cleanScannedText)) {
-        processLicenseUrl(cleanScannedText);
-      } else {
-        showError("Unknown or invalid QR code");
-      }
-      //end new check
+      processLicenseUrl(cleanScannedText);
     },
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
       highlightCodeOutline: true,  // Outlines detected QR codes in green
       maxScansPerSecond: 25,       // High sample rate for instant locks
-      preferredCamera: 'environment' // Lock onto primary rear autofocus lens
-
-      // 🚀 CUSTOM RESOLUTION OVERRIDE: Feeds a high-detail 800x800 frame to the decoder
+      preferredCamera: 'environment', // Lock onto primary rear autofocus lens
+      
+      //  CUSTOM RESOLUTION OVERRIDE: Feeds a high-detail 800x800 frame to the decoder
       calculateScanRegion: (video) => {
         const smallerDimension = Math.min(video.videoWidth, video.videoHeight);
         
@@ -296,8 +288,6 @@ function startScanner() {
           downScaledHeight: 800
         };
       }
-  
-      
     }
   );
 
