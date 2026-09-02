@@ -369,18 +369,10 @@ async function processLicenseUrl(url) {
   const isValidPath = lowerUrl.includes("/elicensing/userprofileqr.do") || 
                       lowerUrl.includes("/digitallicence/info.do");
 
-  //if (!isOfficialDomain || !isValidPath) {
-  //  showError("Invalid or non-eCLIPSE QR code");
-  //  return;
-  //} 
-  if (isOfficialDomain && isValidPath) {
-        // Match found! Process and load the pilot's credentials
-        processLicenseUrl(cleanScannedText);
-      } else {
-        // SILENT FILTER: The QR code is invalid or unrelated. 
-        // We do NOT call showError() or stopScanner(). The camera remains open and live!
-        console.warn("Ignored non-CAAM QR code content:", cleanScannedText);
-      } //end new check
+  if (!isOfficialDomain || !isValidPath) {
+    showError("Invalid or non-eCLIPSE QR code");
+    return;
+  } //end new check
 
   // Validation passed! Proceed with proxy fetch sequence
 
