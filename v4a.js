@@ -264,13 +264,18 @@ function startScanner() {
       const decodedText = typeof result === 'object' ? result.data : result;
       const cleanScannedText = (decodedText || "").trim();
       
-      // Matches your manual URL handler check EXACTLY (using exact case-sensitive matching)
-      if (cleanScannedText.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") || 
-          cleanScannedText.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-        processLicenseUrl(cleanScannedText);
-      } else {
-        showError("Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
+      // Exact adaptation of your manual URL handler check
+      if (!cleanScannedText) {
+        showError("Unknown or invalid QR");
+        return;
       }
+      if (!cleanScannedText.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && 
+          !cleanScannedText.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
+        showError("Unknown or invalid QR. Please check");
+        return;
+      }
+
+      processLicenseUrl(cleanScannedText);
     },
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
