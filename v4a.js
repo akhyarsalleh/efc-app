@@ -4,30 +4,12 @@
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
-// Validates whether a scanned/entered URL matches the official CAAM Licence QR pattern
-//function isValidLicenseUrl(url) {
-//  const pattern = /^https?:\/\/eclipse\.caam\.gov\.my\/ELICENSING\/userprofileqr\.do\?m=viewMyDigitalLicenseQR&personid=\d+&key=[a-fA-F0-9]{32}&codekey=\d+$/i;
-//  return pattern.test(url);
-//}
-
-// Validates CAAM Digital Licence URLs while ignoring hidden whitespace/newlines
-//function isValidLicenseUrl(url) {
-//  if (!url) return false;
-// Clean up any trailing spaces, invisible line-breaks, and unify casing
-//  const cleanUrl = url.trim().toLowerCase();
-// 1. Verify the URL contains the official CAAM portal domain
-//  const hasOfficialDomain = cleanUrl.includes("eclipse.caam.gov.my");
-// 2. Verify it actually points to the licensing portal or QR checker endpoint
-//  const hasLicensingPath = cleanUrl.includes("/elicensing/") || cleanUrl.includes("userprofileqr.do");
-//  return hasOfficialDomain && hasLicensingPath;
-//}
-
 // Global state
 let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 let qrScanner = null; // Replaced html5QrcodeScanner with QrScanner object
 let lastScannedUrl = "";
 
-// Configure Web Worker Path locally (Safe for race conditions)
+// Tells Nimiq to offload decoding to your local subfolder worker
 if (typeof QrScanner !== 'undefined') {
   QrScanner.WORKER_PATH = 'js/qr-scanner-worker.min.js';
 }
@@ -58,6 +40,7 @@ function initApp() {
   document.addEventListener("click", (event) => {
     const historyDetails = document.getElementById("history-details");
     const historyWrapper = document.getElementById("history-card-wrapper");
+    
     // Check if the history card exists and is currently open
     if (historyDetails && historyDetails.hasAttribute("open")) {
       // If the clicked element is NOT inside the history card wrapper, close it
@@ -67,9 +50,11 @@ function initApp() {
     }
   });
 
+
   // Initial render of cached list
   renderHistoryList();
 }
+
 
 // Global Connection State Controller
 function updateNetworkStatus() {
@@ -104,6 +89,9 @@ function updateNetworkStatus() {
   }
 } //end of Global Connection State Controller
 
+
+
+
 // -----------------------------------------
 // UI Navigation / View State Management
 // -----------------------------------------
@@ -135,12 +123,14 @@ function showScannerView() {
   if (errorMsg) errorMsg.innerText = "";
   const manualInput = document.getElementById("manual-url-input");
   if (manualInput) manualInput.value = "";
-
+  
   // Reset body background to original default Slate-50 when returning to scanner
   document.body.classList.remove("bg-green-100", "bg-orange-100", "bg-red-100");
   document.body.classList.add("bg-slate-50");
+
   renderHistoryList();
   showView("scanner-view");
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -165,13 +155,19 @@ function showError(msg) {
 // Scan History Controllers
 // -----------------------------------------
 function saveToHistory(results, originalUrl) {
+  // Extract only the 24H clock time from scanTime (e.g., "14:30")
+//  const timeOnly = results.scanTime
+//    ? results.scanTime.split(' ').pop()
+//    : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+
   // Preserve the full Date & Time string (e.g., "26 Aug 2026 14:30")
   const fullDateTime = results.scanTime
     ? results.scanTime
     : new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
-        .replace(', ', ', ')    // Replaces standard comma separator (Chrome/Firefox) with " - "
-        .replace(' at ', ', ')  // Replaces Safari's "at" separator with " - "
-        .replace(',', ', ');    // Fallback safety separator
+    .replace(', ', ', ')    // Replaces standard comma separator (Chrome/Firefox) with " - "
+    .replace(' at ', ', ')  // Replaces Safari's "at" separator with " - "
+    .replace(',', ', ');    // Fallback safety separator
+
 
   const record = {
     id: results.pilotDetails.licenseNo || Date.now().toString(),
@@ -180,7 +176,7 @@ function saveToHistory(results, originalUrl) {
     overallStatus: results.overallStatus,
     url: originalUrl,
     resultsData: results,
-    timestamp: fullDateTime
+    timestamp: fullDateTime //timeOnly
   };
 
   scanHistory = scanHistory.filter(item => item.id !== record.id);
@@ -197,6 +193,7 @@ function renderHistoryList() {
     container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
     return;
   }
+
   container.innerHTML = scanHistory.map(item => {
     const dotColor = item.overallStatus === "EXPIRED" ? "bg-red-500" : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
     const safeId = item.id.replace(/'/g, "\\'");
@@ -204,7 +201,7 @@ function renderHistoryList() {
       <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType} - ${item.timestamp} LT</span>
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType} • ${item.timestamp} LT</span>
         </div>
         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
@@ -232,20 +229,20 @@ window.clearHistory = function() {
 // QR Scanner Controller
 // -----------------------------------------
 function startScanner() {
-  const errorMsg = document.getElementById("error-message");
+    const errorMsg = document.getElementById("error-message");
   if (errorMsg) errorMsg.innerText = "";
   const qrContainer = document.getElementById("qr-reader-container");
   if (qrContainer) qrContainer.classList.remove("hidden");
 
   // --- NEW: Hide recent history tab when camera active ---
   const historyWrapper = document.getElementById("history-card-wrapper");
-  if (historyWrapper) historyWrapper.classList.add("hidden");
+  if (historyWrapper) historyWrapper.classList.add("hidden"); //end
 
   const customDivider = document.getElementById("cust_div");
-  if (customDivider) customDivider.classList.add("hidden");
+  if (customDivider) customDivider.classList.add("hidden"); //end
 
   const manForm = document.getElementById("manual_form");
-  if (manForm) manForm.classList.add("hidden");
+  if (manForm) manForm.classList.add("hidden"); //end
 
   const startBtn = document.getElementById("start-scan-btn");
   if (startBtn) startBtn.classList.add("hidden");
@@ -259,11 +256,11 @@ function startScanner() {
     return;
   }
 
-  // Initialize Nimiq QR Scanner
+  // Initialize Nimiq QR Scanner with continuous autofocus and high-frequency checks
   qrScanner = new QrScanner(
     videoElem,
     result => {
-      // Safely support string (v1.x) or object (v2.x) outputs cleanly
+      // Safely check if result is an object (v2.x) or string (v1.x) to prevent crashes
       const decodedText = typeof result === 'object' ? result.data : result;
       const cleanScannedText = (decodedText || "").trim();
       processLicenseUrl(cleanScannedText);
@@ -271,8 +268,8 @@ function startScanner() {
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
       highlightCodeOutline: true,  // Outlines detected QR codes in green
-      maxScansPerSecond: 25,       // High sample rate for immediate lock-on
-      preferredCamera: 'environment' // Prioritize back-facing main camera
+      maxScansPerSecond: 25,       // High sample rate for instant locks
+      preferredCamera: 'environment' // Lock onto primary rear autofocus lens
     }
   );
 
@@ -283,6 +280,7 @@ function startScanner() {
 
 function stopScanner() {
   if (qrScanner) {
+    // Destroys the camera hardware stream cleanly
     qrScanner.destroy();
     qrScanner = null;
 
@@ -291,13 +289,13 @@ function stopScanner() {
 
     // --- NEW: Restore recent history tab when camera stops ---
     const historyWrapper = document.getElementById("history-card-wrapper");
-    if (historyWrapper) historyWrapper.classList.remove("hidden");
+    if (historyWrapper) historyWrapper.classList.remove("hidden");//end
 
     const customDivider = document.getElementById("cust_div");
-    if (customDivider) customDivider.classList.remove("hidden");
+    if (customDivider) customDivider.classList.remove("hidden"); //end
 
     const manForm = document.getElementById("manual_form");
-    if (manForm) manForm.classList.remove("hidden");
+    if (manForm) manForm.classList.remove("hidden"); //end
 
     const startBtn = document.getElementById("start-scan-btn");
     if (startBtn) startBtn.classList.remove("hidden");
@@ -314,16 +312,22 @@ function handleManualUrl() {
     showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
     return;
   }
-
-  // Robust Case-Insensitive Prefix Check
-  const lowerUrl = urlInput.toLowerCase();
-  if (!lowerUrl.startsWith("http://eclipse.caam.gov.my/elicensing/userprofileqr.do?") && 
-      !lowerUrl.startsWith("https://eclipse.caam.gov.my/elicensing/userprofileqr.do?")) {
+  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
     showError("Please enter a valid https://eclipse.caam.gov.my/ URL");
     return;
   }
+//  const urlInput = document.getElementById("manual-url-input").value.trim();
+  
+//  if (!urlInput) {
+//    showError("Please paste a CAAM Digital Licence URL.");
+//    return;
+//  }
 
-  processLicenseUrl(urlInput);
+//  if (isValidLicenseUrl(urlInput)) {
+    processLicenseUrl(urlInput);
+//  } else {
+//    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
+//  }
 }
 
 function openOriginalLicense() {
@@ -339,19 +343,19 @@ async function processLicenseUrl(url) {
   lastScannedUrl = url;
   await stopScanner();
   showLoading("Fetching digital license via proxy...");
-
-  // Capture local date & time in 24-hour format
-  const scanTime = new Date().toLocaleString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
+// Capture local date & time in 24-hour format
+  const scanTime = new Date().toLocaleString('en-GB', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
   }).replace(', ', ', ')    // Replaces standard comma separator (Chrome/Firefox) with " - "
     .replace(' at ', ', ')  // Replaces Safari's "at" separator with " - "
     .replace(',', ', ');    // Fallback safety separator
 
+  
   try {
     const fetchUrl = `${PROXY_URL}?url=${encodeURIComponent(url)}`;
     const response = await fetch(fetchUrl);
@@ -362,9 +366,10 @@ async function processLicenseUrl(url) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, "text/html");
     const results = parseLicenseDOM(doc, DEFAULT_THRESHOLD);
-
+    
     // Attach the timestamp to the results object so renderResults can see it
-    results.scanTime = scanTime;
+    results.scanTime = scanTime; 
+    
     saveToHistory(results, url);
     renderResults(results);
   } catch (error) {
@@ -380,9 +385,10 @@ function renderResults(results) {
   // Render the last scanned date/time on the results page
   const timeEl = document.getElementById("scan-timestamp");
   if (timeEl) {
+    //timeEl.innerText = results.scanTime || "N/A";
     timeEl.innerText = results.scanTime ? `${results.scanTime} LT` : "N/A";
   }
-
+  
   // Set Pilot profile details
   document.getElementById("pilot-name").innerText = results.pilotDetails.name || "N/A";
   document.getElementById("licence-type").innerText = results.pilotDetails.licenseType || "N/A";
@@ -467,6 +473,7 @@ function renderResults(results) {
           ${statusHtml}
         </div>
       `;
+
       container.appendChild(qRow);
     });
   }
@@ -486,20 +493,18 @@ function parseLicenseDate(dateStr) {
   }
   const match = trimmed.match(/^(\d{1,2})\s+([a-zA-Z]{3,10})\s+(\d{4})$/);
   if (!match) return null;
-
   const day = parseInt(match[1], 10);
   const monthStr = match[2].toUpperCase();
   const year = parseInt(match[3], 10);
-
+  
   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const monthsMalay = ["JAN", "FEB", "MAC", "APR", "MEI", "JUN", "JUL", "OGOS", "SEP", "OKT", "NOV", "DIS"];
-
+  
   let monthIdx = months.indexOf(monthStr);
   if (monthIdx === -1) {
     monthIdx = monthsMalay.indexOf(monthStr);
   }
   if (monthIdx === -1) return null;
-
   return new Date(year, monthIdx, day);
 }
 
@@ -515,7 +520,6 @@ function isUnderPg2(el) {
       }
     }
   }
-
   let curr = el;
   while (curr) {
     if (curr.id && typeof curr.id === 'string') {
@@ -553,7 +557,7 @@ function getDirectChildCells(tr) {
 function getLabelFromRow(tr) {
   const tds = getDirectChildCells(tr);
   for (let i = 0; i < tds.length; i++) {
-    const text = tds[i].textContent.replace('â¢', '').trim();
+    const text = tds[i].textContent.replace('•', '').trim();
     if (!text) continue;
     const isDatePattern = /^\d{1,2}\s+[a-zA-Z]{3,10}\s+\d{4}$/.test(text) || text.toUpperCase() === 'NO EXPIRY';
     if (!isDatePattern) {
@@ -566,15 +570,14 @@ function getLabelFromRow(tr) {
 function shouldIgnore(el) {
   if (!el) return true;
   if (isUnderPg2(el)) return true;
-
   const text = el.textContent.trim();
   if (!text) return true;
-
   const upperText = text.toUpperCase();
+
   if (upperText.includes("INITIAL GRANT") || upperText.includes("INITIAL_GRANT")) {
     return true;
   }
-  if (upperText.includes("7 DECEMBER 1944") || upperText.includes("7 DISEMBER 1944") ||
+  if (upperText.includes("7 DECEMBER 1944") || upperText.includes("7 DISEMBER 1944") || 
       upperText.includes("DECEMBER 1944") || upperText.includes("DISEMBER 1944")) {
     return true;
   }
@@ -591,12 +594,11 @@ function shouldIgnore(el) {
     }
     if (tagName === 'DIV') {
       const className = (curr.className || '').toLowerCase();
-      if (className.includes('row') || className.includes('container') ||
+      if (className.includes('row') || className.includes('container') || 
           className.includes('col-') || className.includes('card')) {
         break;
       }
     }
-
     const currText = curr.textContent.toUpperCase();
     if (currText.includes("DATE OF BIRTH") || currText.includes("TARIKH LAHIR")) {
       return true;
@@ -663,33 +665,36 @@ function isRedOrExpired(el) {
 function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   const refDate = new Date();
   const qualificationData = {};
-
+  
   function processQualification(labelText, dateText, parsedDate, isVisuallyExpired) {
     const name = labelText || "Qualification";
     const key = name.toUpperCase().replace(/\s+/g, '');
+    
     if (key.includes('CLASS1(SC)') || key.includes('CLASS1SC') || key.includes('CLASS1(S.C.)')) {
       return;
     }
-    const cleanName = name.replace('â¢', '').trim();
+    
+    const cleanName = name.replace('•', '').trim();
     let status = "VALID";
     let daysRemaining = null;
-
+    
     if (isVisuallyExpired) {
       status = "EXPIRED";
     } else if (parsedDate) {
       const timeDiff = parsedDate.getTime() - refDate.getTime();
       daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+      
       if (daysRemaining < 0) {
         status = "EXPIRED";
       } else if (daysRemaining <= daysThreshold) {
         status = "EXPIRING_SOON";
       }
     }
-
+    
     if (qualificationData[key] && qualificationData[key].status === "EXPIRED") {
       return;
     }
-
+    
     qualificationData[key] = {
       name: cleanName,
       dateText: dateText,
@@ -699,12 +704,13 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     };
   }
 
+
   // --- Extract Pilot Details ---
   let pilotName = "";
   let licenseType = "";
   let licenseNo = "";
-
   const allElements = doc.querySelectorAll('td, th, b, span, div, p');
+
   for (let i = 0; i < allElements.length; i++) {
     if (isUnderPg2(allElements[i])) continue;
     const text = allElements[i].textContent.toUpperCase();
@@ -713,14 +719,14 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
       if (tr) {
         const nextTr = tr.nextElementSibling;
         if (nextTr) {
-          pilotName = nextTr.textContent.replace(/â¢/g, '').trim().replace(/\s+/g, ' ');
+          pilotName = nextTr.textContent.replace(/•/g, '').trim().replace(/\s+/g, ' ');
           break;
         }
         const tds = tr.querySelectorAll('td, th');
         if (tds.length > 1) {
           for (let j = 0; j < tds.length; j++) {
             if (tds[j] !== allElements[i] && tds[j].textContent.trim()) {
-              pilotName = tds[j].textContent.replace(/â¢/g, '').trim().replace(/\s+/g, ' ');
+              pilotName = tds[j].textContent.replace(/•/g, '').trim().replace(/\s+/g, ' ');
               break;
             }
           }
@@ -797,7 +803,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     const headers = table.querySelectorAll('th, td');
     let isFclTable = false;
     let licenceTypeColIndex = -1;
-
     for (let h = 0; h < headers.length; h++) {
       const headerText = headers[h].textContent.toUpperCase();
       if (headerText.includes('LICENCE TYPE') || headerText.includes('JENIS LESEN')) {
@@ -810,7 +815,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         break;
       }
     }
-
     if (isFclTable && licenceTypeColIndex !== -1) {
       const rows = table.querySelectorAll('tr');
       for (let r = 0; r < rows.length; r++) {
@@ -860,12 +864,10 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     if (cardNormalized.includes('CLASS1(SC)') || cardNormalized.includes('CLASS1SC') || cardNormalized.includes('CLASS1(S.C.)')) {
       continue;
     }
-
     const titleEl = card.querySelector('.col-sm-12 .bg-gray-300') || card.querySelector('div[style*="font-weight: 500"]') || card.querySelector('.fs-5');
     const labelText = titleEl ? titleEl.textContent.trim() : "";
     const dateEl = card.querySelector('.text-uppercase b') || card.querySelector('.fs-4 b, .fs-3 b');
     const dateText = dateEl ? dateEl.textContent.trim() : "";
-
     if (labelText && dateText) {
       if (shouldIgnore(dateEl)) continue;
       const parsedDate = parseLicenseDate(dateText);
@@ -879,7 +881,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   for (let i = 0; i < rows.length; i++) {
     const tr = rows[i];
     if (isUnderPg2(tr)) continue;
-
     const rowText = tr.textContent.toUpperCase();
     const rowNormalized = rowText.replace(/\s+/g, '');
     if (rowNormalized.includes('CLASS1(SC)') || rowNormalized.includes('CLASS1SC') || rowNormalized.includes('CLASS1(S.C.)')) {
@@ -910,7 +911,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
   for (let i = 0; i < elements.length; i++) {
     const el = elements[i];
     if (isUnderPg2(el)) continue;
-
     if (el.children.length === 0 && el.textContent.trim().length > 0) {
       if (shouldIgnore(el)) continue;
       if (isRedOrExpired(el)) {
@@ -918,13 +918,12 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
         let dateText = el.textContent.trim();
         const tr = el.closest('tr');
         const card = el.closest('.card');
-
         if (tr) {
           const rowNormalized = tr.textContent.toUpperCase().replace(/\s+/g, '');
           if (rowNormalized.includes('CLASS1(SC)') || rowNormalized.includes('CLASS1SC') || rowNormalized.includes('CLASS1(S.C.)')) continue;
           const labelTd = tr.querySelector('.text-left') || tr.querySelector('td');
           if (labelTd) {
-            labelText = labelTd.textContent.replace('â¢', '').trim();
+            labelText = labelTd.textContent.replace('•', '').trim();
           }
         } else if (card) {
           const cardNormalized = card.textContent.toUpperCase().replace(/\s+/g, '');
@@ -934,7 +933,6 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
           const dateEl = card.querySelector('.text-uppercase b') || card.querySelector('.fs-4 b, .fs-3 b');
           if (dateEl) dateText = dateEl.textContent.trim();
         }
-
         if (!labelText) labelText = "Qualification";
         const key = labelText.toUpperCase().replace(/\s+/g, '');
         if (!qualificationData[key]) {
