@@ -269,7 +269,7 @@ function startScanner() {
       if (isValidLicenseUrl(cleanScannedText)) {
         processLicenseUrl(cleanScannedText);
       } else {
-        showError("Unknown or invalid QR code. Please ensure you are scanning an official CAAM Digital Licence QR code.");
+        showError("Unknown or invalid QR code");
       }
       //end new check
     },
