@@ -334,8 +334,7 @@ function handleManualUrl() {
   
 //  if (!urlInput) {
 //    showError("Please paste a CAAM Digital Licence URL.");
-//    return;
-//  }
+//    
 
 //  if (isValidLicenseUrl(urlInput)) {
     processLicenseUrl(urlInput);
@@ -371,7 +370,7 @@ async function processLicenseUrl(url) {
                       lowerUrl.includes("/digitallicence/info.do");
 
   if (!isOfficialDomain || !isValidPath) {
-    showError("Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
+    showError("Invalid or non-eCLIPSE QR code");
     return;
   } //end new check
 
