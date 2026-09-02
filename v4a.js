@@ -263,13 +263,35 @@ function startScanner() {
       // Safely check if result is an object (v2.x) or string (v1.x) to prevent crashes
       const decodedText = typeof result === 'object' ? result.data : result;
       const cleanScannedText = (decodedText || "").trim();
-      processLicenseUrl(cleanScannedText);
+      
+      // Simple, robust, case-insensitive check matching our manual handler
+      const lowerText = cleanScannedText.toLowerCase();
+      if (lowerText.startsWith("http://eclipse.caam.gov.my/elicensing/userprofileqr.do?") || 
+          lowerText.startsWith("https://eclipse.caam.gov.my/elicensing/userprofileqr.do?")) {
+        processLicenseUrl(cleanScannedText);
+      } else {
+        showError("Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
+      }
     },
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
       highlightCodeOutline: true,  // Outlines detected QR codes in green
       maxScansPerSecond: 25,       // High sample rate for instant locks
-      preferredCamera: 'environment' // Lock onto primary rear autofocus lens
+      preferredCamera: 'environment', // Lock onto primary rear autofocus lens
+      
+      // Custom 800x800 resolution gate to ensure dense cards decode flawlessly
+      calculateScanRegion: (video) => {
+        const smallerDimension = Math.min(video.videoWidth, video.videoHeight);
+        const scanRegionSize = Math.round(smallerDimension * 0.85);
+        return {
+          x: Math.round((video.videoWidth - scanRegionSize) / 2),
+          y: Math.round((video.videoHeight - scanRegionSize) / 2),
+          width: scanRegionSize,
+          height: scanRegionSize,
+          downScaledWidth: 800,
+          downScaledHeight: 800
+        };
+      }
     }
   );
 
