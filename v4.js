@@ -11,7 +11,7 @@ let qrScanner = null; // Replaced html5QrcodeScanner with QrScanner object
 //QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
 // SAFELY set the Worker Path only if the library has fully compiled on window
 if (typeof QrScanner !== 'undefined') {
-  QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
+  QrScanner.WORKER_PATH = 'js/qr-scanner-worker.min.js';
 }
 
 let lastScannedUrl = "";
