@@ -201,7 +201,7 @@ function renderHistoryList() {
       <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-          <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-tighter mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
+          <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
         </div>
         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
@@ -269,7 +269,21 @@ function startScanner() {
       highlightScanRegion: true,   // Draws a focused scan square on screen
       highlightCodeOutline: true,  // Outlines detected QR codes in green
       maxScansPerSecond: 25,       // High sample rate for instant locks
-      preferredCamera: 'environment' // Lock onto primary rear autofocus lens
+      preferredCamera: 'environment', // Lock onto primary rear autofocus lens
+      
+      // Custom 800x800 resolution gate to ensure dense cards decode flawlessly
+      calculateScanRegion: (video) => {
+        const smallerDimension = Math.min(video.videoWidth, video.videoHeight);
+        const scanRegionSize = Math.round(smallerDimension * 0.85);
+        return {
+          x: Math.round((video.videoWidth - scanRegionSize) / 2),
+          y: Math.round((video.videoHeight - scanRegionSize) / 2),
+          width: scanRegionSize,
+          height: scanRegionSize,
+          downScaledWidth: 800,
+          downScaledHeight: 800
+        };
+      }
     }
   );
 
@@ -320,8 +334,7 @@ function handleManualUrl() {
   
 //  if (!urlInput) {
 //    showError("Please paste a CAAM Digital Licence URL.");
-//    return;
-//  }
+//    
 
 //  if (isValidLicenseUrl(urlInput)) {
     processLicenseUrl(urlInput);
@@ -332,14 +345,37 @@ function handleManualUrl() {
 
 function openOriginalLicense() {
   if (lastScannedUrl) {
-    window.open(lastScannedUrl, "_self");
+    window.open(lastScannedUrl, "_blank");
   }
 }
 
 // -----------------------------------------
 // License Fetch & Proxy Integration
 // -----------------------------------------
+//async function processLicenseUrl(url) { // unquote if delete new check below
 async function processLicenseUrl(url) {
+  if (!url) {
+    showError("Invalid or non-eCLIPSE QR");
+    return;
+  }
+
+  // CENTRAL DUAL-PATTERN GATE: Accepts both QR redirects and Manual URLs, blocks typo domains
+  const lowerUrl = url.trim().toLowerCase();
+  
+  // 1. Hostname validation (completely blocks lookalike "ecilpse" and phishing domains)
+  const isOfficialDomain = lowerUrl.includes("eclipse.caam.gov.my");
+
+  // 2. Path validation (accepts either the manual viewing path OR the physical QR redirection path)
+  const isValidPath = lowerUrl.includes("/elicensing/userprofileqr.do") || 
+                      lowerUrl.includes("/digitallicence/info.do");
+
+  if (!isOfficialDomain || !isValidPath) {
+    showError("Invalid or non-eCLIPSE QR");
+    return;
+  } //end new check
+
+  // Validation passed! Proceed with proxy fetch sequence
+
   lastScannedUrl = url;
   await stopScanner();
   showLoading("Fetching digital license...");
