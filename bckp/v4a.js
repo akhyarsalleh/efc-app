@@ -382,7 +382,7 @@ async function processLicenseUrl(url) {
 
   lastScannedUrl = url;
   await stopScanner();
-  showLoading("Fetching digital license...");
+  showLoading("Fetching digital licence...");
 // Capture local date & time in 24-hour format
   const scanTime = new Date().toLocaleString('en-GB', { 
     day: '2-digit', 
