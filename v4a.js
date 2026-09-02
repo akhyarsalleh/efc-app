@@ -265,12 +265,12 @@ function startScanner() {
       const cleanScannedText = (decodedText || "").trim();
       
       // Strict prefix check matching exactly what you specified
-      if (cleanScannedText.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && cleanScannedText.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-        processLicenseUrl(cleanScannedText);
-      } else {
-        // Blocks non-matching inputs and prompts the user with an error
+      if (!cleanScannedText.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !cleanScannedText.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
         showError("Unknown or invalid QR code. Please");
+        return
       }
+        processLicenseUrl(cleanScannedText);
+      
     },
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
