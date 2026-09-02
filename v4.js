@@ -259,7 +259,11 @@ function startScanner() {
     videoElem,
     result => {
       // Omit all validation checks and immediately process the raw trimmed URL data
-      const cleanScannedText = result.data.trim();
+      //const cleanScannedText = result.data.trim();
+      //processLicenseUrl(cleanScannedText);
+      // Safely check if result is a string (v1.x) or an object (v2.x) to prevent crashes
+      const decodedText = typeof result === 'object' ? result.data : result;
+      const cleanScannedText = (decodedText || "").trim();
       processLicenseUrl(cleanScannedText);
     },
     {
