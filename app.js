@@ -150,6 +150,10 @@ function showError(msg) {
   } else {
     alert(msg);
   }
+  const manualInput = document.getElementById("manual-url-input");
+  if (manualInput) {
+    manualInput.value = "";
+  }
   showView("scanner-view");
 }
 
