@@ -355,7 +355,7 @@ function openOriginalLicense() {
 //async function processLicenseUrl(url) { // unquote if delete new check below
 async function processLicenseUrl(url) {
   if (!url) {
-    showError("Please enter a valid licence page URL");
+    showError("Invalid or non-eCLIPSE QR");
     return;
   }
 
@@ -370,7 +370,7 @@ async function processLicenseUrl(url) {
                       lowerUrl.includes("/digitallicence/info.do");
 
   if (!isOfficialDomain || !isValidPath) {
-    showError("Invalid or non-eCLIPSE QR code");
+    showError("Invalid or non-eCLIPSE QR");
     return;
   } //end new check
 
