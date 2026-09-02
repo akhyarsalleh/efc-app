@@ -279,23 +279,7 @@ function startScanner() {
       maxScansPerSecond: 25,       // High sample rate for instant locks
       preferredCamera: 'environment' // Lock onto primary rear autofocus lens
 
-      // CUSTOM RESOLUTION FIX: Feeds a high-detail 800x800 frame to the decoder
-      calculateScanRegion: (video) => {
-        const smallerDimension = Math.min(video.videoWidth, video.videoHeight);
-        
-        // Expand scanner box to occupy 80% of the screen (easier card alignment)
-        const scanRegionSize = Math.round(smallerDimension * 0.80);
-        
-        return {
-          x: Math.round((video.videoWidth - scanRegionSize) / 2),
-          y: Math.round((video.videoHeight - scanRegionSize) / 2),
-          width: scanRegionSize,
-          height: scanRegionSize,
-          // Overrides default 400x400 downscaling. 800x800 preserves micro-square contrast
-          downScaledWidth: 800,
-          downScaledHeight: 800
-        };
-      } // end of fix
+  
       
     }
   );
