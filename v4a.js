@@ -198,7 +198,7 @@ function renderHistoryList() {
     const dotColor = item.overallStatus === "EXPIRED" ? "bg-red-500" : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
     const safeId = item.id.replace(/'/g, "\\'");
     return `
-      <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-white transition-colors">
+      <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
           <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
