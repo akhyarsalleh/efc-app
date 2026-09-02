@@ -201,7 +201,7 @@ function renderHistoryList() {
       <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType} - ${item.timestamp} LT</span>
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
         </div>
         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
@@ -309,11 +309,11 @@ function stopScanner() {
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
-    showError("Please enter a valid eCLIPSE licence page URL");
+    showError("Please enter a valid licence page URL");
     return;
   }
   if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-    showError("Please enter a valid eCLIPSE licence page URL");
+    showError("Please enter a valid licence page URL");
     return;
   }
 //  const urlInput = document.getElementById("manual-url-input").value.trim();
