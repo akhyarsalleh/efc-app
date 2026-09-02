@@ -264,18 +264,27 @@ function startScanner() {
       const decodedText = typeof result === 'object' ? result.data : result;
       const cleanScannedText = (decodedText || "").trim();
       
-      // Exact adaptation of your manual URL handler check
-      if (!cleanScannedText) {
-        showError("Unknown or invalid QR");
-        return;
+      try {
+        const urlObj = new URL(cleanScannedText);
+        
+        // 1. Strict Hostname check (handles typos like "ecilpse" vs "eclipse")
+        const isOfficialDomain = urlObj.hostname.toLowerCase() === "eclipse.caam.gov.my";
+        
+        // 2. Pathname check (case-insensitive for elicensing folder)
+        const isLicensingPath = urlObj.pathname.toLowerCase() === "/elicensing/userprofileqr.do";
+        
+        if (isOfficialDomain && isLicensingPath) {
+          // Success! Process the authentic URL
+          processLicenseUrl(cleanScannedText);
+        } else {
+          // SILENT FILTER: It's a URL, but not a CAAM Digital Licence.
+          // We do NOT call showError() so the camera stays open and keeps looking!
+          console.warn("Ignored non-CAAM URL:", cleanScannedText);
+        }
+      } catch (err) {
+        // SILENT FILTER: The scanned item isn't even a valid URL.
+        // Ignore it and let the scanner continue without interruption.
       }
-      if (!cleanScannedText.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && 
-          !cleanScannedText.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-        showError("Unknown or invalid QR. Please check");
-        return;
-      }
-
-      processLicenseUrl(cleanScannedText);
     },
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
