@@ -263,7 +263,15 @@ function startScanner() {
       // Safely check if result is an object (v2.x) or string (v1.x) to prevent crashes
       const decodedText = typeof result === 'object' ? result.data : result;
       const cleanScannedText = (decodedText || "").trim();
-      processLicenseUrl(cleanScannedText);
+      //processLicenseUrl(cleanScannedText); -- unquote if deleting below check
+
+      // Run our balanced validation check
+      if (isValidLicenseUrl(cleanScannedText)) {
+        processLicenseUrl(cleanScannedText);
+      } else {
+        showError("Unknown or invalid QR code. Please ensure you are scanning an official CAAM Digital Licence QR code.");
+      }
+      //end new check
     },
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
@@ -312,22 +320,18 @@ function handleManualUrl() {
     showError("Please enter a valid licence page URL");
     return;
   }
-  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-    showError("Please enter a valid licence page URL");
-    return;
-  }
-//  const urlInput = document.getElementById("manual-url-input").value.trim();
-  
-//  if (!urlInput) {
-//    showError("Please paste a CAAM Digital Licence URL.");
-//    return;
-//  }
-
-//  if (isValidLicenseUrl(urlInput)) {
+  //ori unquote all below if deleting new check below
+  //if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
+  //  showError("Please enter a valid licence page URL");
+  //  return;
+  //}
+  //  processLicenseUrl(urlInput); -- end of ori
+  // Uses the same validation logic to allow redirected folders, but catches typos
+  if (isValidLicenseUrl(urlInput)) {
     processLicenseUrl(urlInput);
-//  } else {
-//    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
-//  }
+  } else {
+    showError("Please enter a valid licence page URL");
+  }
 }
 
 function openOriginalLicense() {
