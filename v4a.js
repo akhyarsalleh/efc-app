@@ -360,16 +360,22 @@ async function processLicenseUrl(url) {
     return;
   }
 
-  // CENTRAL SIMPLE LOGIC GATE: Blocks typo domains and spoof attempts
-  const lower = url.trim().toLowerCase();
-  const startsDirectly = lower.startsWith("eclipse.caam.gov.my/elicensing/");
-  const startsWithHttp = lower.startsWith("http://eclipse.caam.gov.my/elicensing/");
-  const startsWithHttps = lower.startsWith("https://eclipse.caam.gov.my/elicensing/");
+  // CENTRAL DUAL-PATTERN GATE: Accepts both QR redirects and Manual URLs, blocks typo domains
+  const lowerUrl = url.trim().toLowerCase();
+  
+  // 1. Hostname validation (completely blocks lookalike "ecilpse" and phishing domains)
+  const isOfficialDomain = lowerUrl.includes("eclipse.caam.gov.my");
 
-  if (!(startsDirectly || startsWithHttp || startsWithHttps) || !lower.includes("userprofileqr.do")) {
-    showError("Unknown or invalid QR code. Please ensure you are scanning an official CAAM Digital Licence QR code.");
+  // 2. Path validation (accepts either the manual viewing path OR the physical QR redirection path)
+  const isValidPath = lowerUrl.includes("/elicensing/userprofileqr.do") || 
+                      lowerUrl.includes("/digitallicence/info.do");
+
+  if (!isOfficialDomain || !isValidPath) {
+    showError("Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
     return;
-  } // end new check
+  } //end new check
+
+  // Validation passed! Proceed with proxy fetch sequence
 
   lastScannedUrl = url;
   await stopScanner();
