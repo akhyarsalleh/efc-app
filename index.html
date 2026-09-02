@@ -1,153 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CertiFly</title>
-    <!-- Tailwind CSS for mobile-responsive styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- html5-qrcode library for QR scanning -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        .hidden { display: none !important; }
-        .text-xxs { font-size: 0.65rem; }
-    </style>
+<!--
+------------------------------------------------
+// CertiFly™ - Digital Licence Checker        //
+// Version: 1.4 (Beta), Release: (09.01)      //
+// Developed by: Capt. Mohd Sallehuddin Zaidy //
+------------------------------------------------
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CertiFly™</title>
+<!-- Tailwind CSS for mobile-responsive styling -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Nimiq qr-scanner library (Organized locally in your js folder) -->
+<script src="js/qr-scanner.umd.min.js"></script>
+
+<style>
+.hidden { display: none !important; }
+.text-xxs { font-size: 0.65rem; }
+</style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col justify-between">
-    <div class="max-w-md mx-auto w-full p-4 flex flex-col min-h-screen">
-        <!-- Header -->
-        <header class="text-center py-4">
-            <h1 class="text-4xl font-black text-blue-950 tracking-tight italic">CertiFly<span class="align-super indent-8 text-[8px]"> ™</span></h1>
-            <p class="text-xs font-semibold text-slate-500 mt-1">Digital Licence Checker</p>
-        </header>
 
-        <!-- Main Body -->
-        <main class="flex-grow flex flex-col justify-center my-2">
-            
-            <!-- SCANNER VIEW -->
-            <div id="scanner-view" class="app-view bg-white shadow-xl rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
-                <div class="text-center">
-                    <h2 class="text-lg font-bold text-slate-900">Instructions</h2>
-                    <p class="text-sm text-slate-500 mt-1">Point your camera at the QR code on the<br>pilot's licence card and hold steady.</p>
-                </div>
+<!-- Floating Top Overlay Alert (Solid Red Background) -->
+<div id="offline-overlay" class="hidden fixed top-0 left-0 right-0 z-50 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest text-center py-3 px-4 shadow-xl flex items-center justify-center gap-2 animate-pulse">
+<!-- Warn icon -->
+<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+</svg>
+<span>Offline — Please check your connection</span>
+</div>
 
-                <!-- QR Scanner Frame -->
-                <div id="qr-reader-container" class="hidden w-full overflow-hidden rounded-2xl bg-slate-900 aspect-square flex items-center justify-center relative">
-                    <div id="qr-reader" class="w-full h-full"></div>
-                </div>
+<div class="max-w-md mx-auto w-full p-4 flex flex-col min-h-screen">
 
-                <!-- Error Display -->
-                <div id="error-message" class="text-xs text-red-600 bg-red-50 p-3.5 rounded-xl font-semibold text-center empty:hidden"></div>
+<!-- Header -->
+<header class="text-center py-4">
+  <h1 class="text-4xl font-black text-blue-950 tracking-tight italic flex items-center justify-center gap-1 leading-none">
+    <!-- Brand Name with Trademark positioned inline -->
+    <span class="relative">
+      CertiFly<span class="align-super text-[7px] font-bold absolute -top-1 -right-2">™</span>
+    </span>
+    <!-- SVG Logo (No manual margin-left, inheriting the tight gap-1 layout) -->
+    <svg class="h-[1.15em] w-auto fill-current text-blue-950" viewBox="0 0 98 72" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+      <path id="path22" d="M10.144,35.354L9.8,36.674C9.8,36.674 14.131,36.602 15.877,36.602C19.875,36.598 22.309,36.964 22.577,39.398C22.814,41.038 22.053,42.614 21.614,44.162C21.191,45.664 20.807,47.105 20.39,48.588C19.95,50.152 19.476,51.531 18.64,52.587C17.688,53.785 16.472,54.58 15.227,54.884C13.512,55.303 6.502,55.055 4.55,55.055C4.331,55.605 4.2,56.245 4.024,56.84C9.708,57.13 15.186,56.748 21.003,56.925C22.889,56.983 24.762,57.183 26.427,56.84C28.966,56.321 30.801,54.574 31.59,52.245C32.371,49.951 33.078,47.278 33.779,44.844C34.163,43.51 34.409,42.25 35.003,41.185C35.57,40.169 36.318,39.378 37.278,38.631C39.04,37.266 41.91,36.117 44.63,37.441C45.971,38.092 46.75,39.176 46.731,41.185C46.715,42.914 46.134,44.337 45.681,45.949C44.325,50.762 43.13,54.852 41.83,59.564C41.403,61.11 41.074,62.768 40.518,64.074C39.439,66.61 37.064,68.684 33.955,69.179C31.349,69.593 28.385,69.265 25.64,69.265L0.613,69.265C0.613,69.265 0.186,70.495 0,71.137C10.984,71.292 22.305,71.22 32.992,71.22C35.903,71.22 38.599,71.298 41.131,71.051C48.391,70.344 54.817,68.307 60.12,65.435C68.938,60.661 75.866,53.998 80.948,45.44C83.874,40.509 88.767,36.753 96.812,36.753C97.043,36.141 97.16,35.875 97.35,35.354L10.144,35.354L10.144,35.354Z" style="fill-rule:nonzero;"/>
+      <path id="path90" d="M97.674,34.461C91.512,34.598 86.903,31.955 86.462,26.379C86.372,25.254 86.47,24.202 86.374,23.231C86.071,20.148 85.407,17.72 84.36,15.317C80.344,6.093 72.42,1.014 59.683,0L20.128,0C20.052,0.692 19.743,1.157 19.69,1.872L45.243,1.872C48.033,1.872 51.129,1.493 53.469,2.127C54.98,2.536 56.823,3.895 56.707,6.55C56.648,7.912 56.012,9.361 55.568,10.891C54.344,15.126 53.293,19.321 52.069,23.57C51.272,26.331 50.706,29.272 49.005,31.313C47.464,33.164 44.67,34.974 41.304,34.036C40.08,33.694 39.313,33.263 38.768,32.42C37.447,30.385 38.661,27.255 39.293,25.017C39.638,23.789 40.016,22.65 40.341,21.527C40.654,20.448 41.19,19.152 41.216,17.869C41.261,15.895 40.004,14.878 38.768,14.464C37.3,13.977 35.183,14.21 33.253,14.21C27.62,14.21 21.544,14.14 16.101,14.295C15.985,14.89 15.76,15.38 15.664,15.997C20.565,15.997 28.44,15.382 28.44,19.401C28.452,20.339 28.113,21.388 27.827,22.378C27.306,24.191 26.76,25.985 26.253,27.825C25.996,28.758 25.82,29.719 25.466,30.548C24.534,32.732 23.549,34.461 19.952,34.461L10.372,34.461L10.143,35.354L97.349,35.354C97.484,34.956 97.558,34.761 97.674,34.461" style="fill-rule:nonzero;"/>
+    </svg>
+  </h1>
+  <p class="text-[9px] font-semibold text-slate-500 mt-1 uppercase tracking-widest">Digital Licence Checker</p>
+</header>
 
-                <!-- Actions -->
-                <button id="start-scan-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 flex items-center justify-center gap-2 shadow-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
-                    Scan QR
-                </button>
-                <button id="stop-scan-btn" class="hidden w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 shadow-md">
-                    Stop QR Scanner
-                </button>
+<!-- Main Body -->
+<main class="flex-grow flex flex-col justify-center my-2">
 
-                <!-- Custom Divider -->
-                <div class="relative flex items-center py-1">
-                    <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-wider">Or Input Manually</span>
-                    <div class="flex-grow border-t border-slate-200"></div>
-                </div>
+<!-- Overlay History Card (Repositioned & Separated) -->
+<div id="history-card-wrapper" class="relative mb-5 z-50">
+<details id="history-details" class="bg-white shadow-md rounded-3xl border border-slate-100 group transition-all duration-200">
+<summary class="flex items-center justify-between cursor-pointer list-none p-4 text-slate-500 hover:text-slate-500 transition-colors select-none">
+<span class="text-[10px] uppercase tracking-wider font-extrabold flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+</svg>
+Recent Licence Checks
+</span>
+<div class="flex items-center gap-3">
+<!-- Clear All Button -->
+<button onclick="event.stopPropagation(); clearHistory();" class="text-[9px] font-black text-red-500 hover:text-red-700 uppercase tracking-tighter bg-red-50 px-2 py-0.5 rounded-md transition-colors">
+Clear All
+</button>
+<svg class="w-3 h-3 transform group-open:rotate-180 transition-transform duration-200 text-slate-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+</svg>
+</div>
+</summary>
+<!-- Absolute dropdown list (floats cleanly on top of scanner elements) -->
+<div class="absolute left-2 right-2 top-full mt-1 z-50 bg-sky-50 shadow-sm rounded-2xl border border-blue-100 p-2 max-h-80 overflow-y-auto">
+<div id="history-list" class="flex flex-col divide-y divide-blue-100">
+<div class="text-[11px] text-slate-500 italic py-3 text-center">No recent scans on this device.</div>
+</div>
+</div>
+</details>
+</div>
 
-                <!-- Manual Form -->
-                <div class="flex flex-col gap-2">
-                    <input type="url" id="manual-url-input" placeholder="Paste licence portal URL here..." class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs">
-                    <button id="submit-url-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-2xl transition duration-150 text-xs shadow-sm">
-                        Verify Manual URL
-                    </button>
-                </div>
-            </div>
+<!-- SCANNER VIEW -->
+<div id="scanner-view" class="app-view bg-white shadow-md rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
+<div class="text-center">
+<h2 class="text-lg font-bold text-slate-900">Instructions</h2>
+<p class="text-sm text-slate-500 mt-1">Point your camera at the QR code on the<br>pilot's licence card and hold steady.</p>
+</div>
 
-            <!-- LOADING VIEW -->
-            <div id="loading-view" class="app-view hidden bg-white shadow-xl rounded-3xl p-10 border border-slate-100 flex flex-col items-center justify-center gap-4 text-center">
-                <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <p id="loading-text" class="text-xs font-bold tracking-wide text-slate-700 uppercase">Fetching pilot credentials...</p>
-            </div>
+<!-- QR Scanner Viewport (Using native HTML5 Video elements for Nimiq hardware stream) -->
+<div id="qr-reader-container" class="hidden w-full overflow-hidden rounded-2xl bg-slate-900 aspect-square flex items-center justify-center relative">
+<video id="qr-video" class="w-full h-full object-cover"></video>
+<div class="absolute bottom-5 left-0 right-0 text-center pointer-events-none z-10">
+<span class="text-white text-[9px] font-bold uppercase tracking-wider drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.85)]">Avoid shadows / reflections</span>
+</div>
+</div>
 
-            <!-- RESULT VIEW -->
-            <div id="result-view" class="app-view hidden flex flex-col gap-4">
-                
-                <!-- Verdict Header -->
-                <div class="bg-white shadow-xl rounded-3xl p-6 border border-slate-100 text-center flex flex-col items-center">
-                    <div id="result-header" class="text-lg font-black tracking-normal uppercase">-</div>
-                    <div id="overall-status-badge" class="status-badge font-black uppercase rounded-full px-6 py-3 text-white inline-block text-xs tracking-wider mt-4 shadow-md">
-                        -
-                    </div>
-                    <p id="overall-message" class="text-[13px] text-slate-500 mt-4 max-w-xs mx-auto leading-relaxed">-</p>
-                </div>
+<!-- Error Display -->
+<div id="error-message" class="text-xs text-red-600 bg-red-50 p-3.5 rounded-xl font-semibold text-center empty:hidden"></div>
 
-                <!-- Pilot Profile Card -->
-                <div class="bg-white shadow-xl rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
-                    <div class="border-b border-slate-100 pb-2">
-                        <span class="text-slate-400 text-xxs uppercase tracking-wider font-extrabold">PILOT CREDENTIALS</span>
-                    </div>
-                    <div class="flex flex-col gap-3">
-                        <div>
-                            <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Full Name</span>
-                            <span id="pilot-name" class="font-bold text-slate-900 text-base">-</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Type</span>
-                                <span id="licence-type" class="font-bold text-slate-900 text-xs">-</span>
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Number</span>
-                                <span id="licence-number" class="font-bold text-slate-900 text-xs">-</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!-- Actions -->
+<button id="start-scan-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 flex items-center justify-center gap-2 shadow-md">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
+Scan QR
+</button>
 
-                <!-- Qualifications List Card -->
-                <div class="bg-white shadow-xl rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
-                    <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
-                        <span class="text-slate-400 text-xxs uppercase tracking-wider font-extrabold">VALIDITIES & CERTIFICATIONS</span>
-                        <span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold uppercase">Checker Active</span>
-                    </div>
-                    <div id="qualifications-list" class="flex flex-col divide-y divide-slate-100">
-                        <!-- Populated programmatically -->
-                    </div>
-                </div>
+<button id="stop-scan-btn" class="hidden w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-4 rounded-2xl transition duration-150 shadow-md">
+Stop QR Scanner
+</button>
 
-                <!-- Strict Reminder -->
-                <div class="bg-red-50 rounded-2xl p-4 text-center border border-red-200 shadow-xl">
-                    <div class="text-xs font-black text-red-700 uppercase tracking-wide">REMINDER: ALWAYS RE-CHECK AND VERIFY!</div>
-                    <div class="text-xs text-red-600 font-medium mt-1">MANUAL CROSS-CHECKING IS <span class="underline">MANDATORY</span></div>
-                </div>
+<!-- Custom Divider -->
+<div class="relative flex items-center py-1" id="cust_div">
+<div class="flex-grow border-t border-slate-200"></div>
+<span class="flex-shrink mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-wider">Or Input Manually</span>
+<div class="flex-grow border-t border-slate-200"></div>
+</div>
 
-                <!-- Navigation Options -->
-                <div class="flex flex-col gap-2 mt-2">
-                    <!--<button id="open-original-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-bold py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider">-->
-                    <button id="open-original-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider shadow-md ">
-                        Proceed to Licence Page
-                    </button>
-                    <!--<button id="scan-new-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2">-->
-                    <button id="scan-new-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-                        Scan Another QR Code
-                    </button>
-                </div>
-            </div>
+<!-- Manual Form -->
+<div class="flex flex-col gap-2" id="manual_form">
+<input type="url" id="manual-url-input" placeholder="URL - https://eclipse.caam.gov.my/ELICENSING.." class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs">
+<button id="submit-url-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 rounded-2xl transition duration-150 text-xs shadow-sm">
+Verify Manual URL
+</button>
+</div>
+</div>
 
-        </main>
+<!-- LOADING VIEW
+<div id="loading-view" class="app-view hidden bg-white shadow-lg rounded-3xl p-10 border border-slate-100 flex flex-col items-center justify-center gap-4 text-center">
+<svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+</svg>
+<p id="loading-text" class="text-xs font-bold tracking-wide text-slate-700 uppercase">Fetching pilot credentials...</p>
+</div>-->
 
-        <!-- Footer -->
-        <footer class="text-center py-4 text-[9px] text-slate-950 mt-auto uppercase tracking-widest font-semibold">
-            © 2026 CertiFly • v1.0 (beta)
-        </footer>
-    </div>
+<!-- LOADING VIEW (High-Contrast & Auto-Animating) -->
+<div id="loading-view" class="app-view hidden bg-white shadow-lg rounded-3xl p-10 border border-slate-100 flex flex-col items-center justify-center gap-4 text-center">
+  <!-- 
+    1. 'animate-spin' applies the continuous rotation.
+    2. 'text-blue-600' ensures high visibility against the white background.
+  -->
+  <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <!-- Light grey background track -->
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <!-- Dark blue moving crescent arc (This creates the visible spinning effect!) -->
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+  <p id="loading-text" class="text-xs font-bold tracking-wide text-slate-700 uppercase">Fetching pilot credentials...</p>
+</div>
 
-    <!-- Inject scanning app behavior -->
-    <script src="app.js"></script>
+<!-- RESULT VIEW -->
+<div id="result-view" class="app-view hidden flex flex-col gap-4">
+
+<!-- Strict Reminder -->
+<div class="bg-red-50 rounded-2xl p-4 text-center border border-red-400 shadow-sm">
+<div class="text-xs font-black text-red-600 uppercase tracking-wide">REMINDER: ALWAYS RE-CHECK AND VERIFY!<br>MANUAL CROSS-CHECKING IS <span class="underline">MANDATORY</span></div>
+</div>
+
+<!-- Verdict Header -->
+<div class="bg-white shadow-lg rounded-3xl p-6 border border-slate-100 text-center flex flex-col items-center">
+<div id="result-header" class="text-lg font-black tracking-normal uppercase">-</div>
+<div id="overall-status-badge" class="status-badge font-black uppercase rounded-full px-6 py-3 text-white inline-block text-xs tracking-wider mt-4 shadow-md">
+-
+</div>
+<p id="overall-message" class="text-[13px] text-slate-500 mt-4 max-w-xs mx-auto leading-relaxed hidden">-</p>
+<p class="text-[11px] text-slate-500 uppercase tracking-wide pt-4 rounded-md">Last Checked: <span id="scan-timestamp" class="text-slate-800 font-extrabold text-[11px]">--:--</span></p>
+</div>
+
+<!-- Pilot Profile Card -->
+<div class="bg-white shadow-lg rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
+<div class="border-b border-slate-100 pb-2">
+<span class="text-slate-400 text-xxs uppercase tracking-wider font-extrabold">PILOT CREDENTIALS</span>
+</div>
+<div class="flex flex-col gap-3">
+<div>
+<span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Full Name</span>
+<span id="pilot-name" class="font-bold text-slate-900 text-base">-</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Type</span>
+<span id="licence-type" class="font-bold text-slate-900 text-xs">-</span>
+</div>
+<div>
+<span class="text-[10px] text-slate-400 uppercase tracking-wide font-semibold block">Licence Number</span>
+<span id="licence-number" class="font-bold text-slate-900 text-xs">-</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Qualifications List Card -->
+<div class="bg-white shadow-lg rounded-3xl p-5 border border-slate-100 flex flex-col gap-4">
+<div class="border-b border-slate-100 pb-2 flex justify-between items-center">
+<span class="text-slate-400 text-xxs uppercase tracking-wider font-extrabold">VALIDITIES & CERTIFICATIONS</span>
+<span class="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold uppercase">Checker Active</span>
+</div>
+<div id="qualifications-list" class="flex flex-col divide-y divide-slate-100">
+<!-- Populated programmatically -->
+</div>
+</div>
+
+<!-- Navigation Options -->
+<div class="flex flex-col gap-2 mt-2">
+<button id="open-original-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider shadow-md ">
+Proceed to Licence Page
+</button>
+<button id="scan-new-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold py-4 rounded-2xl transition duration-150 text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+Scan Another QR Code
+</button>
+</div>
+
+</div>
+</main>
+
+<!-- Footer -->
+<footer class="text-center py-4 text-[9px] text-slate-950 mt-auto uppercase tracking-widest font-semibold">
+© 2026 CertiFly • v1.4a (beta)
+</footer>
+
+</div>
+
+<!-- Inject scanning app behavior -->
+<script src=app.js"></script>
 </body>
 </html>
