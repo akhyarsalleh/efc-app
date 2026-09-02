@@ -263,26 +263,7 @@ function startScanner() {
       // Safely check if result is an object (v2.x) or string (v1.x) to prevent crashes
       const decodedText = typeof result === 'object' ? result.data : result;
       const cleanScannedText = (decodedText || "").trim();
-      
-      try {
-        const urlObj = new URL(cleanScannedText);
-        
-        // 1. Strict Hostname check (catches typos like "ecilpse" vs "eclipse")
-        const isOfficialDomain = urlObj.hostname.toLowerCase() === "eclipse.caam.gov.my";
-        
-        // 2. Strict Pathname check (case-insensitive to accommodate mobile routing)
-        const isLicensingPath = urlObj.pathname.toLowerCase() === "/elicensing/userprofileqr.do";
-
-        if (isOfficialDomain && isLicensingPath) {
-          processLicenseUrl(cleanScannedText);
-        } else {
-          // Reject other URLs or lookalike domains
-          showError("1Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
-        }
-      } catch (e) {
-        // Fallback or non-URL QR code scanned
-        showError("2Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
-      }
+      processLicenseUrl(cleanScannedText);
     },
     {
       highlightScanRegion: true,   // Draws a focused scan square on screen
@@ -372,7 +353,33 @@ function openOriginalLicense() {
 // -----------------------------------------
 // License Fetch & Proxy Integration
 // -----------------------------------------
+//async function processLicenseUrl(url) { // unquote if delete new check below
 async function processLicenseUrl(url) {
+  if (!url) {
+    showError("Please enter a valid licence page URL");
+    return;
+  }
+
+  // 🛡️ CENTRAL DOMAIN GATE: Aborts execution if the URL is not authentic
+  try {
+    const urlObj = new URL(url.trim());
+    
+    // 1. Strict Hostname check (blocks typos like "ecilpse.caam.gov.my")
+    const isOfficialDomain = urlObj.hostname.toLowerCase() === "eclipse.caam.gov.my";
+    
+    // 2. Strict Pathname check (case-insensitive path matching)
+    const isLicensingPath = urlObj.pathname.toLowerCase() === "/elicensing/userprofileqr.do";
+
+    if (!isOfficialDomain || !isLicensingPath) {
+      showError("!Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
+      return;
+    }
+  } catch (e) {
+    // Blocks non-URL strings or corrupt payloads from executing
+    showError("@Unknown or invalid QR code. Please scan an official CAAM Digital Licence QR code.");
+    return;
+  } // end new check
+
   lastScannedUrl = url;
   await stopScanner();
   showLoading("Fetching digital license...");
