@@ -201,7 +201,7 @@ function renderHistoryList() {
       <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-          <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-tighter mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
+          <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
         </div>
         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
