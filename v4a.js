@@ -269,25 +269,7 @@ function startScanner() {
       highlightScanRegion: true,   // Draws a focused scan square on screen
       highlightCodeOutline: true,  // Outlines detected QR codes in green
       maxScansPerSecond: 25,       // High sample rate for instant locks
-      preferredCamera: 'environment', // Lock onto primary rear autofocus lens
-      
-      //  CUSTOM RESOLUTION OVERRIDE: Feeds a high-detail 800x800 frame to the decoder
-      calculateScanRegion: (video) => {
-        const smallerDimension = Math.min(video.videoWidth, video.videoHeight);
-        
-        // Expand scanner box to occupy 85% of the screen viewport
-        const scanRegionSize = Math.round(smallerDimension * 0.85);
-        
-        return {
-          x: Math.round((video.videoWidth - scanRegionSize) / 2),
-          y: Math.round((video.videoHeight - scanRegionSize) / 2),
-          width: scanRegionSize,
-          height: scanRegionSize,
-          // Overrides the default 400x400 limit to preserve high-contrast micro-modules
-          downScaledWidth: 800,
-          downScaledHeight: 800
-        };
-      }
+      preferredCamera: 'environment' // Lock onto primary rear autofocus lens
     }
   );
 
@@ -330,18 +312,22 @@ function handleManualUrl() {
     showError("Please enter a valid licence page URL");
     return;
   }
-  //ori unquote all below if deleting new check below
-  //if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
-  //  showError("Please enter a valid licence page URL");
-  //  return;
-  //}
-  //  processLicenseUrl(urlInput); -- end of ori
-  // Uses the same validation logic to allow redirected folders, but catches typos
-  if (isValidLicenseUrl(urlInput)) {
-    processLicenseUrl(urlInput);
-  } else {
+  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
     showError("Please enter a valid licence page URL");
+    return;
   }
+//  const urlInput = document.getElementById("manual-url-input").value.trim();
+  
+//  if (!urlInput) {
+//    showError("Please paste a CAAM Digital Licence URL.");
+//    return;
+//  }
+
+//  if (isValidLicenseUrl(urlInput)) {
+    processLicenseUrl(urlInput);
+//  } else {
+//    showError("Invalid URL format! Ensure you have copied the full eCLIPSE licence page URL.");
+//  }
 }
 
 function openOriginalLicense() {
