@@ -3,6 +3,7 @@ const APP_SHELL = 'index.html';
 const ASSETS = [
   'index.html',
   'app.js',
+  'css/style.css',
   'js/qr-scanner.umd.min.js',
   'js/qr-scanner-worker.min.js',
   'https://cdn.tailwindcss.com',
