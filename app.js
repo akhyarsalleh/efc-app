@@ -110,6 +110,7 @@ function updateNetworkStatus() {
       checkerBadge.innerText = "Cached View";
       checkerBadge.className = "text-[10px] text-gray-50 bg-gray-500 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
     }
+  }
 
   // Gracefully disable/restore network inputs based on connection availability
   if (startScanBtn) {
