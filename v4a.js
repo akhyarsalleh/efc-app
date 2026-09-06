@@ -41,6 +41,19 @@ function initApp() {
     event.preventDefault();
   }, false);
 
+  // NATIVE APP GESTURES: Intercept and block physical pinch-to-zoom gestures (iOS/Android)
+  document.addEventListener('touchstart', (event) => {
+    if (event.touches.length > 1) {
+      event.preventDefault(); // Stops multi-finger zooming instantly
+    }
+  }, { passive: false });
+
+  // NATIVE APP GESTURES: Block scale gesture zooming specifically on WebKit/Safari engines
+  document.addEventListener('gesturestart', (event) => {
+    event.preventDefault(); // Prevents Safari pinch scaling
+  });
+
+  
   // --- NEW: Connection Status Event Listeners ---
   window.addEventListener("online", updateNetworkStatus);
   window.addEventListener("offline", updateNetworkStatus);
