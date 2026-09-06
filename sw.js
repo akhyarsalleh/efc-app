@@ -1,7 +1,7 @@
 const CACHE_NAME = 'certifly-cache-v1.4a';
 const ASSETS_TO_CACHE = [
-  'v4a.html',
-  'v4a.js',
+  'index.html',
+  'app.js',
   'js/qr-scanner.umd.min.js',
   'js/qr-scanner-worker.min.js',
   'https://cdn.tailwindcss.com',
@@ -46,7 +46,7 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request).catch(() => {
         // Fallback response when offline and querying proxy
         return new Response(
-          JSON.stringify({ error: "offline", message: "You are currently offline. Live pilot check is unavailable." }),
+          JSON.stringify({ error: "offline", message: "You are currently offline. Live licence check is unavailable." }),
           { headers: { 'Content-Type': 'application/json' } }
         );
       })
