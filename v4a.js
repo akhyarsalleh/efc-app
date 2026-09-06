@@ -63,6 +63,7 @@ function updateNetworkStatus() {
   const startScanBtn = document.getElementById("start-scan-btn");
   const submitUrlBtn = document.getElementById("submit-url-btn");
   const manualInput = document.getElementById("manual-url-input");
+  const openOriginalBtn = document.getElementById("open-original-btn");
 
   if (overlay) {
     if (isOnline) {
@@ -86,6 +87,11 @@ function updateNetworkStatus() {
   }
   if (manualInput) {
     manualInput.disabled = !isOnline;
+  }
+  if (openOriginalBtn) {
+    openOriginalBtn.disabled = !isOnline;
+    openOriginalBtn.classList.toggle("opacity-50", !isOnline);
+    openOriginalBtn.classList.toggle("cursor-not-allowed", !isOnline);
   }
 } //end of Global Connection State Controller
 
