@@ -97,6 +97,19 @@ function updateNetworkStatus() {
     }
   }
 
+  // DYNAMIC CHECKER BADGE: Swap colors and copy based on live internet access
+  if (checkerBadge) {
+    if (isOnline) {
+      checkerBadge.innerText = "Checker Active";
+      // Reset to original premium blue look
+      checkerBadge.className = "text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
+    } else {
+      checkerBadge.innerText = "Cached View";
+      // Shift to warning-amber palette with a pulse animation to draw attention
+      checkerBadge.className = "text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out animate-pulse";
+    }
+  }
+
   // Gracefully disable/restore network inputs based on connection availability
   if (startScanBtn) {
     startScanBtn.disabled = !isOnline;
