@@ -1,0 +1,25 @@
+/* css/style.css */
+
+/* Custom utility classes */
+.hidden { 
+  display: none !important; 
+}
+
+.text-xxs { 
+  font-size: 0.65rem; 
+}
+
+/* NATIVE APP FEEL: Disable text selection globally */
+body {
+  -webkit-user-select: none;   /* Safari */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;           /* Standard */
+  -webkit-touch-callout: none; /* Disable iOS long-press callouts */
+}
+
+/* EXCEPTION: Allow selection & pasting in input boxes */
+input, #manual-url-input {
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
