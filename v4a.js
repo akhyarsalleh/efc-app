@@ -5,7 +5,23 @@ const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Global state
-let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
+//let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
+// Global state with safe initialization fallback
+let scanHistory = [];
+try {
+  const storedData = localStorage.getItem("scan_history");
+  if (storedData) {
+    scanHistory = JSON.parse(storedData);
+    // Ensure the parsed data is actually a valid array to prevent format crashes
+    if (!Array.isArray(scanHistory)) {
+      scanHistory = [];
+    }
+  }
+} catch (error) {
+  console.warn("Storage Warning: Unable to parse scan history from local storage.", error);
+  scanHistory = []; // Fallback to clean state instead of throwing a fatal crash
+} //end
+
 let qrScanner = null; // Replaced html5QrcodeScanner with QrScanner object
 let lastScannedUrl = "";
 
@@ -228,7 +244,15 @@ function saveToHistory(results, originalUrl) {
   scanHistory = scanHistory.filter(item => item.id !== record.id);
   scanHistory.unshift(record);
   if (scanHistory.length > 10) scanHistory.pop();
-  localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+  //localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+  // SAFE WRITE: Prevents Private Browsing or full storage warnings from breaking the app
+  try {
+    localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+  } catch (error) {
+    console.warn("Storage Warning: Failed to save scan to localStorage.", error);
+  } //end
+
+  
   renderHistoryList();
 }
 
