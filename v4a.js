@@ -104,6 +104,8 @@ function updateNetworkStatus() {
   const manualInput = document.getElementById("manual-url-input");
   const openOriginalBtn = document.getElementById("open-original-btn");
 
+  const checkerBadge = document.getElementById("checker-status-badge");
+  
   if (overlay) {
     if (isOnline) {
       overlay.classList.add("hidden");
