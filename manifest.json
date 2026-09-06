@@ -1,10 +1,11 @@
 {
   "name": "CertiFly Digital Licence Checker",
   "short_name": "CertiFly",
+  "id": "/certifly-v1",
   "description": "Digital Licence Checker",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#f8fafc",
   "theme_color": "#172554",
   "orientation": "portrait",
   "icons": [
@@ -12,13 +13,20 @@
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan QR Code",
+      "url": "v4a.html?action=scan",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
