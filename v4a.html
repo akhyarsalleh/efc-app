@@ -11,10 +11,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CertiFly™</title>
-<!-- Tailwind CSS for mobile-responsive styling -->
-<script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Nimiq qr-scanner library (Organized locally in your js folder) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#172554">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then((reg) => console.log('CertiFly Service Worker registered successfully:', reg.scope))
+        .catch((err) => console.error('Service Worker registration failed:', err));
+    });
+  }
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="js/qr-scanner.umd.min.js"></script>
 
 <style>
