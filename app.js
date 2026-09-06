@@ -90,6 +90,8 @@ function updateNetworkStatus() {
   const manualInput = document.getElementById("manual-url-input");
   const openOriginalBtn = document.getElementById("open-original-btn");
 
+  const checkerBadge = document.getElementById("checker-status-badge");
+
   if (overlay) {
     if (isOnline) {
       overlay.classList.add("hidden");
@@ -98,6 +100,16 @@ function updateNetworkStatus() {
       stopScanner(); // Auto-stop active camera stream if device falls offline to conserve resources
     }
   }
+
+  // DYNAMIC CHECKER BADGE: Swap colors and copy based on live internet access
+  if (checkerBadge) {
+    if (isOnline) {
+      checkerBadge.innerText = "Checker Active";
+      checkerBadge.className = "text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
+    } else {
+      checkerBadge.innerText = "Cached View";
+      checkerBadge.className = "text-[10px] text-gray-50 bg-gray-500 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
+    }
 
   // Gracefully disable/restore network inputs based on connection availability
   if (startScanBtn) {
