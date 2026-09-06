@@ -15,6 +15,7 @@ body {
   -ms-user-select: none;       /* IE/Edge */
   user-select: none;           /* Standard */
   -webkit-touch-callout: none; /* Disable iOS long-press callouts */
+  touch-action: manipulation;  /* Disable double-tap-to-zoom while preserving standard scrolling */
 }
 
 /* EXCEPTION: Allow selection & pasting in input boxes */
