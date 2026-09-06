@@ -2,7 +2,7 @@
   "name": "CertiFly Digital Licence Checker",
   "short_name": "CertiFly",
   "description": "Digital Licence Checker",
-  "start_url": "index.html",
+  "start_url": "v4a.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#172554",
