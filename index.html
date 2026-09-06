@@ -11,10 +11,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CertiFly™</title>
-<!-- Tailwind CSS for mobile-responsive styling -->
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Nimiq qr-scanner library (Organized locally in your js folder) -->
 <script src="js/qr-scanner.umd.min.js"></script>
 
 <style>
@@ -26,7 +23,6 @@
 
 <!-- Floating Top Overlay Alert (Solid Red Background) -->
 <div id="offline-overlay" class="hidden fixed top-0 left-0 right-0 z-50 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest text-center py-3 px-4 shadow-xl flex items-center justify-center gap-2 animate-pulse">
-<!-- Warn icon -->
 <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
 </svg>
@@ -37,7 +33,7 @@
 
 <!-- Header -->
 <header class="text-center py-4">
-  <h1 class="text-4xl font-black text-blue-950 tracking-tight italic flex items-center justify-center gap-1 leading-none">
+  <h1 onclick="showScannerView()" class="text-4xl font-black text-blue-950 tracking-tight italic flex items-center justify-center gap-1 leading-none">
     <!-- Brand Name with Trademark positioned inline -->
     <span class="relative">
       CertiFly<span class="align-super text-[7px] font-bold absolute -top-1 -right-2">™</span>
@@ -223,7 +219,6 @@ Scan Another QR Code
 
 </div>
 
-<!-- Inject scanning app behavior -->
 <script src="app.js"></script>
 </body>
 </html>
