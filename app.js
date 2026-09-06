@@ -33,6 +33,17 @@ function initApp() {
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
 
+  // Disable Right-Click / Context Menu
+  document.addEventListener('contextmenu', (event) => {
+    // Check if the user is right-clicking the manual input field
+    // We allow the menu on the input field so users can still 'Paste'
+    if (event.target.id === "manual-url-input") {
+      return; 
+    }
+    event.preventDefault();
+  }, false);
+
+
   // --- NEW: Connection Status Event Listeners ---
   window.addEventListener("online", updateNetworkStatus);
   window.addEventListener("offline", updateNetworkStatus);
