@@ -1,75 +1,41 @@
-const CACHE_NAME = 'certifly-cache-v1.4a';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'certifly-v1.4a';
+const APP_SHELL = 'index.html';
+const ASSETS = [
   'index.html',
   'app.js',
   'js/qr-scanner.umd.min.js',
   'js/qr-scanner-worker.min.js',
   'https://cdn.tailwindcss.com',
   'icons/icon-192.png',
-  'icons/icon-512.png',
-  'manifest.json'
+  'icons/icon-512.png'
 ];
 
-// Install Event: Caches the core assets
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching App Shell Assets');
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
-  );
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
 });
 
-// Activate Event: Cleans up old caches if we update CACHE_NAME
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Clearing Old Cache:', cache);
-            return caches.delete(cache);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
-});
-
-// Fetch Event: Cache-First for static assets, Network-First for API
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Skip caching Vercel proxy API queries (we always want live pilot database checks)
-  if (url.pathname.includes('/api/proxy') || url.hostname.includes('vercel.app')) {
+  // 1. Handle API/Proxy requests: Network only, no caching
+  if (url.pathname.includes('/api/proxy')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // 2. Navigation Fallback: If opening the app while offline
+  if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        // Fallback response when offline and querying proxy
-        return new Response(
-          JSON.stringify({ error: "offline", message: "You are currently offline. Live licence check is unavailable." }),
-          { headers: { 'Content-Type': 'application/json' } }
-        );
+        // Network failed (offline), return the cached App Shell
+        return caches.match(APP_SHELL);
       })
     );
     return;
   }
 
-  // Cache-First, falling back to network strategy for static assets
+  // 3. Static Assets: Cache-first strategy
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        // Dynamically add new successful requests to cache
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      });
-    })
+    caches.match(event.request).then(response => response || fetch(event.request))
   );
-});
+})
