@@ -25,7 +25,7 @@
   "shortcuts": [
     {
       "name": "Scan QR Code",
-      "url": "v4a.html?action=scan",
+      "url": "index.html?action=scan",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
