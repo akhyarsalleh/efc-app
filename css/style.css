@@ -1,15 +1,13 @@
 /* css/style.css */
 
 /* Custom utility classes */
-.hidden { 
-  display: none !important; 
-}
+.hidden { display: none !important; }
+.text-xxs { font-size: 0.65rem; }
 
-.text-xxs { 
-  font-size: 0.65rem; 
-}
+summary::-webkit-details-marker {  display: none;  }  /* Hide the default Safari accordion triangle */
+summary {  list-style: none;  }  /* Fail-safe to ensure the list-style is removed across all browsers */
 
-/* NATIVE APP FEEL: Disable text selection globally */
+/* Disable text selection globally */
 body {
   -webkit-user-select: none;   /* Safari */
   -ms-user-select: none;       /* IE/Edge */
