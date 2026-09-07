@@ -363,13 +363,6 @@ function renderHistoryList() {
     const dotColor = item.overallStatus === "EXPIRED" ? "bg-red-500" : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
     const safeId = item.id.replace(/'/g, "\\'");
     return `
-${/*      <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
-        <div class="flex flex-col text-left">
-          <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-          <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
-        </div>
-        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
-      </div>  */ ''}
 
       <!-- Swipe wrapper card (Hides the delete button behind the interactive text) -->
       <div class="swipe-container relative overflow-hidden bg-sky-50 border-b border-blue-100 last:border-b-0">
