@@ -89,10 +89,87 @@ function initApp() {
     }
   });
 
-
   // Initial render of cached list
   renderHistoryList();
-}
+
+  // -------------------------------------------------------------
+  //  NATIVE SWIPE-TO-DELETE CONTROLLERS
+  // -------------------------------------------------------------
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let swipeElement = null;
+  let isSwiping = false;
+  let isHorizontalSwipe = false;
+
+  document.addEventListener('touchstart', (e) => {
+    const content = e.target.closest('.swipe-content');
+    if (!content) return;
+    
+    touchStartX = e.touches.clientX;
+    touchStartY = e.touches.clientY;
+    swipeElement = content;
+    isSwiping = true;
+    isHorizontalSwipe = false;
+    
+    // Automatically reset all other open swipe-delete items
+    document.querySelectorAll('.swipe-content').forEach(el => {
+      if (el !== swipeElement) {
+        el.style.transform = 'translateX(0px)';
+      }
+    });
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isSwiping || !swipeElement) return;
+    
+    const currentX = e.touches.clientX;
+    const currentY = e.touches.clientY;
+    const diffX = currentX - touchStartX;
+    const diffY = currentY - touchStartY;
+
+    // Determine swipe axis on first movement to avoid interfering with natural vertical scrolling
+    if (!isHorizontalSwipe) {
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 6) {
+        isHorizontalSwipe = true;
+      } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 6) {
+        isSwiping = false; // Cancel swipe if dispatcher is trying to scroll down
+      }
+    }
+
+    if (isHorizontalSwipe) {
+      // Prevent browser page movements while swiping the card sideways
+      if (e.cancelable) e.preventDefault();
+      
+      // Calculate drag distance (only allow dragging left, with a limit of -70px)
+      if (diffX < 0) {
+        const moveDistance = Math.max(diffX, -70);
+        swipeElement.style.transform = `translateX(${moveDistance}px)`;
+      } else {
+        swipeElement.style.transform = 'translateX(0px)';
+      }
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', (e) => {
+    if (!swipeElement) return;
+    
+    const currentX = e.changedTouches.clientX;
+    const diffX = currentX - touchStartX;
+
+    // If swipe-left exceeded 35px threshold, latch it open, otherwise snap closed
+    if (isHorizontalSwipe && diffX < -35) {
+      swipeElement.style.transform = 'translateX(-70px)';
+    } else {
+      swipeElement.style.transform = 'translateX(0px)';
+    }
+    
+    isSwiping = false;
+    isHorizontalSwipe = false;
+    swipeElement = null;
+  });
+
+  
+} // end off initApp()
 
 
 // Global Connection State Controller
@@ -286,16 +363,36 @@ function renderHistoryList() {
     const dotColor = item.overallStatus === "EXPIRED" ? "bg-red-500" : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
     const safeId = item.id.replace(/'/g, "\\'");
     return `
-      <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
+${/*      <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
         <div class="flex flex-col text-left">
           <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
           <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
         </div>
         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
+      </div>  */ ''}
+
+      <!-- Swipe wrapper card (Hides the delete button behind the interactive text) -->
+      <div class="swipe-container relative overflow-hidden bg-sky-50 border-b border-blue-100 last:border-b-0">
+        
+        <!-- Hidden Action Layer: Sits absolute behind the z-20 foreground content -->
+        <button onclick="event.stopPropagation(); deleteHistoryItem('${safeId}')" class="absolute right-0 top-0 bottom-0 w-[70px] bg-red-600 text-white flex items-center justify-center font-black text-[9px] uppercase tracking-wider z-10 hover:bg-red-700 transition-all duration-150">
+          Delete
+        </button>
+        
+        <!-- Foreground Content Layer: Receives gestures and triggers rendering on tap -->
+        <div onclick="loadHistoricalRecord('${safeId}')" class="swipe-content relative z-20 bg-sky-50 py-2 px-3 flex items-center justify-between cursor-pointer hover:bg-sky-100/50">
+          <div class="flex flex-col text-left">
+            <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
+            <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
+          </div>
+          <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
+        </div>
+
       </div>
+      
     `;
   }).join('');
-}
+} 
 
 window.loadHistoricalRecord = function(id) {
   const match = scanHistory.find(item => item.id === id);
@@ -1101,3 +1198,21 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     expiringSoonCount
   };
 }
+
+// =====================================================================
+// GLOBAL SWIPE DELETION HANDLER
+// =====================================================================
+window.deleteHistoryItem = function(id) {
+  // Filter out selected record from global array
+  scanHistory = scanHistory.filter(item => item.id !== id);
+  
+  // Safely write remaining history back to device storage
+  try {
+    localStorage.setItem("scan_history", JSON.stringify(scanHistory));
+  } catch (error) {
+    console.warn("Storage Warning: Failed to save updated history to storage.", error);
+  }
+  
+  // Re-render list and update history card count bubble
+  renderHistoryList();
+};
