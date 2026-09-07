@@ -22,3 +22,10 @@ input, #manual-url-input {
   -ms-user-select: text;
   user-select: text;
 }
+
+/* SWIPE-TO-DELETE GESTURE STYLES */
+.swipe-content {
+  /* Uses a highly polished spring curve to emulate iOS/Android system mechanics */
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
