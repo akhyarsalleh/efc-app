@@ -338,24 +338,27 @@ function saveToHistory(results, originalUrl) {
 function renderHistoryList() {
   const container = document.getElementById("history-list");
   const countBadge = document.getElementById("history-count-badge"); // new countbadge
+  const clockIcon = document.getElementById("history-clock-icon");
   
   if (!container) return;
 
   // UPDATE BUBBLE: Set the number and handle visibility
-  if (countBadge) {
+  if (clockIcon && countBadge) {
     const totalScans = scanHistory.length;
     countBadge.innerText = totalScans;
     
     // Hide the bubble if there are zero scans to keep the UI clean
     if (totalScans > 0) {
       countBadge.classList.remove("hidden");
+      clockIcon.classList.add("hidden");
     } else {
+      clockIcon.classList.remove("hidden");
       countBadge.classList.add("hidden");
     }
   } // end countbadge
   
   if (scanHistory.length === 0) {
-    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
+    container.innerHTML = `<div class="text-[11px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
     return;
   }
 
