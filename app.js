@@ -237,18 +237,21 @@ function saveToHistory(results, originalUrl) {
 function renderHistoryList() {
   const container = document.getElementById("history-list");
   const countBadge = document.getElementById("history-count-badge"); // new countbadge
+  const clockIcon = document.getElementById("history-clock-icon");
   
   if (!container) return;
 
-  // Set the number and handle visibility
-  if (countBadge) {
+  // UPDATE BUBBLE: Set the number and handle visibility
+  if (clockIcon && countBadge) {
     const totalScans = scanHistory.length;
     countBadge.innerText = totalScans;
     
     // Hide the bubble if there are zero scans to keep the UI clean
     if (totalScans > 0) {
       countBadge.classList.remove("hidden");
+      clockIcon.classList.add("hidden");
     } else {
+      clockIcon.classList.remove("hidden");
       countBadge.classList.add("hidden");
     }
   } // end countbadge
