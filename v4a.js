@@ -260,7 +260,23 @@ function saveToHistory(results, originalUrl) {
 
 function renderHistoryList() {
   const container = document.getElementById("history-list");
+  const countBadge = document.getElementById("history-count-badge"); // new countbadge
+  
   if (!container) return;
+
+  // UPDATE BUBBLE: Set the number and handle visibility
+  if (countBadge) {
+    const totalScans = scanHistory.length;
+    countBadge.innerText = totalScans;
+    
+    // Hide the bubble if there are zero scans to keep the UI clean
+    if (totalScans > 0) {
+      countBadge.classList.remove("hidden");
+    } else {
+      countBadge.classList.add("hidden");
+    }
+  } // end countbadge
+  
   if (scanHistory.length === 0) {
     container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
     return;
