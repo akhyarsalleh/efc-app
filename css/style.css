@@ -29,3 +29,19 @@ input, #manual-url-input {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
+
+/* CUSTOM HORIZONTAL BOUNCE ANIMATION */
+@keyframes horizontal-bounce {
+  0%, 100% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateX(5px);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-horizontal-bounce {
+  animation: horizontal-bounce 1s infinite;
+}
