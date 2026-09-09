@@ -1,19 +1,22 @@
-// CertiFly™ Service Worker v1.4a
-const CACHE_NAME = 'certifly-cache-v1.4a';
+// CertiFly Service Worker v1.4b
+
+const CACHE_NAME = 'certifly-cache-v1.4b';
 
 // ASSET LIST: All local dependencies needed to run the app offline
 const ASSETS_TO_CACHE = [
-  'index.html',
-  'app.js',
+  'v4b.html',
+  'v4b.js',
+  'js/config.js',
+  'js/parser.js',
+  'js/storage.js',
+  'js/scanner.js',
+  'js/ui.js',
   'css/style.css',
   'manifest.json',
   'js/qr-scanner.umd.min.js',
   'js/qr-scanner-worker.min.js',
   'icons/icon-192.png',
-  'icons/icon-512.png',
-  //'icons/splash-1179x2556.png',
-  //'icons/splash-1290x2796.png',
-  //'icons/splash-1125x2436.png'
+  'icons/icon-512.png'
 ];
 
 // INSTALL: Pre-cache the App Shell
@@ -24,7 +27,6 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  // Force the waiting service worker to become the active one
   self.skipWaiting();
 });
 
@@ -42,7 +44,6 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  // Immediately take control of all open client tabs
   return self.clients.claim();
 });
 
@@ -57,7 +58,6 @@ self.addEventListener('fetch', (event) => {
 
       // Plan B: If not in cache, try to fetch it from the network
       return fetch(event.request).then((networkResponse) => {
-        // Optional: Cache new successful requests on the fly
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -69,9 +69,8 @@ self.addEventListener('fetch', (event) => {
     }).catch(() => {
       // Plan C: THE FALLBACK
       // If network fails (offline) and not in cache, serve the main App Shell
-      // This prevents the "Safari can't open page" alert on iOS
       if (event.request.mode === 'navigate') {
-        return caches.match('index.html');
+        return caches.match('v4b.html');
       }
     })
   );
