@@ -1,27 +1,13 @@
 // app.js - Licence Scanner App Client
+// Version: 1.4a (BETA) Release: 09.26
+// Developed by: Capt. Mohd Sallehuddin Zaidy
 
 // Configuration - Replace with your deployed Vercel URL
 const PROXY_URL = 'https://efc-app.vercel.app/api/proxy';
 const DEFAULT_THRESHOLD = 30; // Days warning threshold
 
 // Global state
-//let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
-// Global state with safe initialization fallback
-let scanHistory = [];
-try {
-  const storedData = localStorage.getItem("scan_history");
-  if (storedData) {
-    scanHistory = JSON.parse(storedData);
-    // Ensure the parsed data is actually a valid array to prevent format crashes
-    if (!Array.isArray(scanHistory)) {
-      scanHistory = [];
-    }
-  }
-} catch (error) {
-  console.warn("Storage Warning: Unable to parse scan history from local storage.", error);
-  scanHistory = []; // Fallback to clean state instead of throwing a fatal crash
-} //end
-
+let scanHistory = JSON.parse(localStorage.getItem("scan_history")) || [];
 let qrScanner = null; // Replaced html5QrcodeScanner with QrScanner object
 let lastScannedUrl = "";
 
@@ -47,7 +33,7 @@ function initApp() {
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
 
-  // NATIVE APP FEEL: Disable Right-Click / Context Menu
+  // Disable Right-Click / Context Menu
   document.addEventListener('contextmenu', (event) => {
     // Check if the user is right-clicking the manual input field
     // We allow the menu on the input field so users can still 'Paste'
@@ -57,19 +43,19 @@ function initApp() {
     event.preventDefault();
   }, false);
 
-  // NATIVE APP GESTURES: Intercept and block physical pinch-to-zoom gestures (iOS/Android)
+  // Intercept and block physical pinch-to-zoom gestures (iOS/Android)
   document.addEventListener('touchstart', (event) => {
     if (event.touches.length > 1) {
       event.preventDefault(); // Stops multi-finger zooming instantly
     }
   }, { passive: false });
 
-  // NATIVE APP GESTURES: Block scale gesture zooming specifically on WebKit/Safari engines
+  // Block scale gesture zooming specifically on WebKit/Safari engines
   document.addEventListener('gesturestart', (event) => {
     event.preventDefault(); // Prevents Safari pinch scaling
   });
 
-  
+
   // --- NEW: Connection Status Event Listeners ---
   window.addEventListener("online", updateNetworkStatus);
   window.addEventListener("offline", updateNetworkStatus);
@@ -89,87 +75,10 @@ function initApp() {
     }
   });
 
+
   // Initial render of cached list
   renderHistoryList();
-
-  // -------------------------------------------------------------
-  //  NATIVE SWIPE-TO-DELETE CONTROLLERS
-  // -------------------------------------------------------------
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let swipeElement = null;
-  let isSwiping = false;
-  let isHorizontalSwipe = false;
-
-  document.addEventListener('touchstart', (e) => {
-    const content = e.target.closest('.swipe-content');
-    if (!content) return;
-    
-    touchStartX = e.touches.clientX;
-    touchStartY = e.touches.clientY;
-    swipeElement = content;
-    isSwiping = true;
-    isHorizontalSwipe = false;
-    
-    // Automatically reset all other open swipe-delete items
-    document.querySelectorAll('.swipe-content').forEach(el => {
-      if (el !== swipeElement) {
-        el.style.transform = 'translateX(0px)';
-      }
-    });
-  }, { passive: true });
-
-  document.addEventListener('touchmove', (e) => {
-    if (!isSwiping || !swipeElement) return;
-    
-    const currentX = e.touches.clientX;
-    const currentY = e.touches.clientY;
-    const diffX = currentX - touchStartX;
-    const diffY = currentY - touchStartY;
-
-    // Determine swipe axis on first movement to avoid interfering with natural vertical scrolling
-    if (!isHorizontalSwipe) {
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 6) {
-        isHorizontalSwipe = true;
-      } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 6) {
-        isSwiping = false; // Cancel swipe if dispatcher is trying to scroll down
-      }
-    }
-
-    if (isHorizontalSwipe) {
-      // Prevent browser page movements while swiping the card sideways
-      if (e.cancelable) e.preventDefault();
-      
-      // Calculate drag distance (only allow dragging left, with a limit of -70px)
-      if (diffX < 0) {
-        const moveDistance = Math.max(diffX, -70);
-        swipeElement.style.transform = `translateX(${moveDistance}px)`;
-      } else {
-        swipeElement.style.transform = 'translateX(0px)';
-      }
-    }
-  }, { passive: false });
-
-  document.addEventListener('touchend', (e) => {
-    if (!swipeElement) return;
-    
-    const currentX = e.changedTouches.clientX;
-    const diffX = currentX - touchStartX;
-
-    // If swipe-left exceeded 35px threshold, latch it open, otherwise snap closed
-    if (isHorizontalSwipe && diffX < -35) {
-      swipeElement.style.transform = 'translateX(-70px)';
-    } else {
-      swipeElement.style.transform = 'translateX(0px)';
-    }
-    
-    isSwiping = false;
-    isHorizontalSwipe = false;
-    swipeElement = null;
-  });
-
-  
-} // end off initApp()
+}
 
 
 // Global Connection State Controller
@@ -182,7 +91,7 @@ function updateNetworkStatus() {
   const openOriginalBtn = document.getElementById("open-original-btn");
 
   const checkerBadge = document.getElementById("checker-status-badge");
-  
+
   if (overlay) {
     if (isOnline) {
       overlay.classList.add("hidden");
@@ -196,11 +105,9 @@ function updateNetworkStatus() {
   if (checkerBadge) {
     if (isOnline) {
       checkerBadge.innerText = "Checker Active";
-      // Reset to original premium blue look
       checkerBadge.className = "text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
     } else {
       checkerBadge.innerText = "Cached View";
-      // Shift to warning-amber palette with a pulse animation to draw attention
       checkerBadge.className = "text-[10px] text-gray-50 bg-gray-500 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
     }
   }
@@ -323,15 +230,7 @@ function saveToHistory(results, originalUrl) {
   scanHistory = scanHistory.filter(item => item.id !== record.id);
   scanHistory.unshift(record);
   if (scanHistory.length > 10) scanHistory.pop();
-  //localStorage.setItem("scan_history", JSON.stringify(scanHistory));
-  // SAFE WRITE: Prevents Private Browsing or full storage warnings from breaking the app
-  try {
-    localStorage.setItem("scan_history", JSON.stringify(scanHistory));
-  } catch (error) {
-    console.warn("Storage Warning: Failed to save scan to localStorage.", error);
-  } //end
-
-  
+  localStorage.setItem("scan_history", JSON.stringify(scanHistory));
   renderHistoryList();
 }
 
@@ -358,7 +257,7 @@ function renderHistoryList() {
   } // end countbadge
   
   if (scanHistory.length === 0) {
-    container.innerHTML = `<div class="text-[11px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
+    container.innerHTML = `<div class="text-[10px] text-slate-400 italic py-4 text-center">No recent scans on this device.</div>`;
     return;
   }
 
@@ -366,29 +265,16 @@ function renderHistoryList() {
     const dotColor = item.overallStatus === "EXPIRED" ? "bg-red-500" : (item.overallStatus === "EXPIRING_SOON" ? "bg-amber-500" : "bg-green-600");
     const safeId = item.id.replace(/'/g, "\\'");
     return `
-
-      <!-- Swipe wrapper card (Hides the delete button behind the interactive text) -->
-      <div class="swipe-container relative overflow-hidden bg-sky-50 border-b border-blue-100 last:border-b-0">
-        
-        <!-- Hidden Action Layer: Sits absolute behind the z-20 foreground content -->
-        <button onclick="event.stopPropagation(); deleteHistoryItem('${safeId}')" class="absolute right-0 top-0 bottom-0 w-[70px] bg-red-600 text-white flex items-center justify-center font-black text-[9px] uppercase tracking-wider z-10 hover:bg-red-700 transition-all duration-150">
-          Delete
-        </button>
-        
-        <!-- Foreground Content Layer: Receives gestures and triggers rendering on tap -->
-        <div onclick="loadHistoricalRecord('${safeId}')" class="swipe-content relative z-20 bg-sky-50 py-2 px-3 flex items-center justify-between cursor-pointer hover:bg-sky-100/50">
-          <div class="flex flex-col text-left">
-            <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
-            <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
-          </div>
-          <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
+      <div onclick="loadHistoricalRecord('${safeId}')" class="py-1.5 px-2 flex items-center justify-between cursor-pointer hover:bg-sky-100 transition-colors">
+        <div class="flex flex-col text-left">
+          <span class="text-[11px] font-semibold text-slate-800 leading-tight">${item.name}</span>
+          <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-normal mt-0.5">${item.licenseType}  -  ${item.timestamp} LT</span>
         </div>
-
+        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 ml-2"></span>
       </div>
-      
     `;
   }).join('');
-} 
+}
 
 window.loadHistoricalRecord = function(id) {
   const match = scanHistory.find(item => item.id === id);
@@ -1194,21 +1080,3 @@ function parseLicenseDOM(doc, daysThreshold = DEFAULT_THRESHOLD) {
     expiringSoonCount
   };
 }
-
-// =====================================================================
-// GLOBAL SWIPE DELETION HANDLER
-// =====================================================================
-window.deleteHistoryItem = function(id) {
-  // Filter out selected record from global array
-  scanHistory = scanHistory.filter(item => item.id !== id);
-  
-  // Safely write remaining history back to device storage
-  try {
-    localStorage.setItem("scan_history", JSON.stringify(scanHistory));
-  } catch (error) {
-    console.warn("Storage Warning: Failed to save updated history to storage.", error);
-  }
-  
-  // Re-render list and update history card count bubble
-  renderHistoryList();
-};
