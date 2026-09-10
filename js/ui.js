@@ -129,24 +129,16 @@ export function initBottomSheetMenu() {
     document.body.insertAdjacentHTML('beforeend', menuHTML);
   }
 
-  const fab = document.getElementById("menu-toggle-btn");
+  
   const overlay = document.getElementById("bottom-sheet-overlay");
   const menu = document.getElementById("bottom-sheet-menu");
   const mainPane = document.getElementById("pane-main");
   const navButtons = document.querySelectorAll(".nav-item-btn");
   const backButtons = document.querySelectorAll(".back-btn");
 
-  if (!fab || !overlay || !menu) return;
+  if (!overlay || !menu) return;
 
-  fab.addEventListener("click", () => {
-    overlay.classList.remove("hidden");
-    setTimeout(() => {
-      overlay.classList.remove("opacity-0");
-      menu.classList.remove("translate-y-full");
-    }, 10);
-  });
-
-  const closeSheet = () => {
+ const closeSheet = () => {
     menu.classList.add("translate-y-full");
     overlay.classList.add("opacity-0");
     setTimeout(() => {
