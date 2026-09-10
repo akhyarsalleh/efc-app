@@ -20,6 +20,19 @@ import {
 
 //------------------------------------------------------
 
+// Force browser to disable scroll memory and return to top on refresh
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+// Scroll to top immediately when script loads
+window.scrollTo(0, 0);
+
+// Extra safeguard for pull-to-refresh / reload gestures
+window.addEventListener('beforeunload', () => {
+  window.scrollTo(0, 0);
+});
+
 let lastScannedUrl = "";
 
 document.addEventListener("DOMContentLoaded", () => {
