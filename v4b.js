@@ -6,6 +6,7 @@ import { saveToHistory, renderHistoryList, getScanHistory } from './js/storage.j
 import { startScanner, stopScanner } from './js/scanner.js';
 import { updateNetworkStatus, showScannerView, showLoading, showError, showView } from './js/ui.js';
 import { initBottomSheetMenu, loadSavedPreferences } from './js/ui.js';
+import { initBottomSheetMenu, initDockBar, loadSavedPreferences } from './js/ui.js';
 
 
 //------------------------------------------------------
@@ -60,12 +61,13 @@ function initApp() {
   });
 
   renderHistoryList();
-
+  //load any future function init here
   loadSavedPreferences();
   initBottomSheetMenu();
+  initDockBar();
   
 } // end of func initApp()
-
+  //---------------------------------
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
