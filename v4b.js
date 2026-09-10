@@ -5,6 +5,10 @@ import { parseLicenseDOM } from './js/parser.js';
 import { saveToHistory, renderHistoryList, getScanHistory } from './js/storage.js';
 import { startScanner, stopScanner } from './js/scanner.js';
 import { updateNetworkStatus, showScannerView, showLoading, showError, showView } from './js/ui.js';
+import { initBottomSheetMenu, loadSavedPreferences } from './js/ui.js';
+
+
+//------------------------------------------------------
 
 let lastScannedUrl = "";
 
@@ -56,7 +60,11 @@ function initApp() {
   });
 
   renderHistoryList();
-}
+
+  loadSavedPreferences();
+  initBottomSheetMenu();
+  
+} // end of func initApp()
 
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
