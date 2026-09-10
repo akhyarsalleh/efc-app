@@ -3,6 +3,8 @@
 import { stopScanner } from './scanner.js';
 import { renderHistoryList } from './storage.js';
 import { menuHTML } from './components/menu.js';
+import { dockHTML } from './components/dock.js';
+
 
 //-----------------------------------------------------------------
 
@@ -259,4 +261,109 @@ function initExpiryCalculator() {
       if (resultBox) resultBox.classList.remove("hidden");
     });
   });
+}
+
+// Bottom Dock //
+export function initDockBar() {
+  // Inject dock markup into DOM
+  if (!document.getElementById("persistent-dock")) {
+    document.body.insertAdjacentHTML('beforeend', dockHTML);
+  }
+
+  const dock = document.getElementById("persistent-dock");
+  if (!dock) return;
+
+  let lastScrollY = window.scrollY;
+  const scrollThreshold = 10; // minimum scroll distance before hiding/showing
+
+  // Listen for window scrolling
+  window.addEventListener("scroll", () => {
+    const currentScrollY = window.scrollY;
+    const scrollDelta = currentScrollY - lastScrollY;
+
+    // 1. Always reveal dock near top of page (avoids rubber-banding glitches)
+    if (currentScrollY < 25) {
+      dock.classList.remove("translate-y-[150%]");
+      lastScrollY = currentScrollY;
+      return;
+    }
+
+    // 2. Hide on Scroll Down, Reveal on Scroll Up
+    if (Math.abs(scrollDelta) > scrollThreshold) {
+      if (scrollDelta > 0) {
+        // Scrolling DOWN -> Slide Dock Out of View
+        dock.classList.add("translate-y-[150%]");
+      } else {
+        // Scrolling UP -> Slide Dock Back In
+        dock.classList.remove("translate-y-[150%]");
+      }
+      lastScrollY = currentScrollY;
+    }
+  }, { passive: true });
+
+  // Hook Dock Buttons to Views & Sheet
+  bindDockActions();
+}
+
+function bindDockActions() {
+  const credsBtn = document.getElementById("dock-creds-btn");
+  const historyBtn = document.getElementById("dock-history-btn");
+  const toolsBtn = document.getElementById("dock-tools-btn");
+  const menuBtn = document.getElementById("dock-menu-btn");
+
+  // Credentials -> Shows main scanner/results view
+  if (credsBtn) {
+    credsBtn.addEventListener("click", () => {
+      window.showScannerView();
+    });
+  }
+
+  // History -> Opens bottom sheet directly to History Sub-Pane
+  if (historyBtn) {
+    historyBtn.addEventListener("click", () => {
+      openSheetSubPane("pane-history");
+    });
+  }
+
+  // Tools -> Opens bottom sheet directly to Expiry Calculator Sub-Pane
+  if (toolsBtn) {
+    toolsBtn.addEventListener("click", () => {
+      openSheetSubPane("pane-tools");
+    });
+  }
+
+  // Menu -> Opens bottom sheet to Main Category Overview
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => {
+      const overlay = document.getElementById("bottom-sheet-overlay");
+      const menu = document.getElementById("bottom-sheet-menu");
+      if (overlay && menu) {
+        overlay.classList.remove("hidden");
+        setTimeout(() => {
+          overlay.classList.remove("opacity-0");
+          menu.classList.remove("translate-y-full");
+        }, 10);
+      }
+    });
+  }
+}
+
+// Helper to launch bottom sheet directly into a specific sub-pane
+function openSheetSubPane(paneId) {
+  const overlay = document.getElementById("bottom-sheet-overlay");
+  const menu = document.getElementById("bottom-sheet-menu");
+  const mainPane = document.getElementById("pane-main");
+  const targetPane = document.getElementById(paneId);
+
+  if (overlay && menu && targetPane) {
+    mainPane.classList.add("-translate-x-full");
+    targetPane.classList.remove("hidden");
+    targetPane.classList.remove("translate-x-full");
+
+    overlay.classList.remove("hidden");
+    setTimeout(() => {
+      overlay.classList.remove("opacity-0");
+      menu.classList.remove("translate-y-full");
+    }, 10);
+  }
 }
