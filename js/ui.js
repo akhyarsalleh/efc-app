@@ -186,9 +186,17 @@ export function initDockBar() {
   const dock = document.getElementById("persistent-dock");
   if (!dock) return;
 
+  // 1. Instantly align dock position with initial scroll position (no animation on load)
   let lastScrollY = window.scrollY;
+  if (lastScrollY > 25) {
+    dock.classList.add("translate-y-[150%]");
+  } else {
+    dock.classList.remove("translate-y-[150%]");
+  }
+
   const scrollThreshold = 10;
 
+  // 2. Listen for scroll events
   window.addEventListener("scroll", () => {
     const currentScrollY = window.scrollY;
     const scrollDelta = currentScrollY - lastScrollY;
