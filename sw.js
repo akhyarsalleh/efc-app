@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   'js/storage.js',
   'js/scanner.js',
   'js/ui.js',
+  'js/components/menu.js'
   'css/style.css',
   'manifest.json',
   'js/qr-scanner.umd.min.js',
