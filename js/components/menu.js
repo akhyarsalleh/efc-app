@@ -1,13 +1,6 @@
 // js/components/menu.js
 export const menuHTML = `
-<!-- FLOATING ACTION BUTTON (FAB) -->
-<button id="menu-toggle-btn" 
-        class="fixed bottom-6 right-6 z-50 bg-blue-950 text-white p-4 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center border border-blue-900/50"
-        aria-label="Open Navigation Menu">
-  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-  </svg>
-</button>
+
 
 <!-- DIMMED BACKDROP OVERLAY -->
 <div id="bottom-sheet-overlay" 
