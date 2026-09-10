@@ -23,8 +23,8 @@ export const dockHTML = `
       <span class="text-[9px] font-bold tracking-tight">History</span>
     </button>
 
-    <!-- 3. CENTER SUBTLE BUTTON: SCAN -->
-    <button id="dock-scan-btn" class="flex flex-col items-center justify-center gap-1 text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/50 dark:border-blue-800/50 px-2 py-1 rounded-xl active:scale-95 transition-all w-[88%] my-auto">
+    <!-- 3. CENTER THREADS-STYLE SCAN BUTTON -->
+    <button id="dock-scan-btn" class="flex flex-col items-center justify-center gap-1 text-blue-600 dark:text-blue-400 bg-blue-100/70 dark:bg-blue-900/40 px-2 py-1 rounded-xl active:scale-95 transition-all w-[88%] my-auto">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
