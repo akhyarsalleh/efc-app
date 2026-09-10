@@ -131,51 +131,45 @@ export function initBottomSheetMenu() {
 
   const overlay = document.getElementById("bottom-sheet-overlay");
   const menu = document.getElementById("bottom-sheet-menu");
-  const mainPane = document.getElementById("pane-main");
-  const navButtons = document.querySelectorAll(".nav-item-btn");
-  const backButtons = document.querySelectorAll(".back-btn");
 
   if (!overlay || !menu) return;
 
-  const closeSheet = () => {
-    menu.classList.add("translate-y-full");
-    overlay.classList.add("opacity-0");
-    setTimeout(() => {
-      overlay.classList.add("hidden");
-      menu.classList.add("hidden");
-      resetToMainPane();
-    }, 300);
-  };
-
   overlay.addEventListener("click", closeSheet);
+}
 
-  navButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetId = btn.getAttribute("data-target");
-      const targetPane = document.getElementById(targetId);
+export function closeSheet() {
+  const overlay = document.getElementById("bottom-sheet-overlay");
+  const menu = document.getElementById("bottom-sheet-menu");
 
-      if (targetPane) {
-        mainPane.classList.add("-translate-x-full");
-        targetPane.classList.remove("hidden");
-        setTimeout(() => targetPane.classList.remove("translate-x-full"), 10);
-      }
-    });
-  });
+  if (!overlay || !menu) return;
 
-  backButtons.forEach(btn => {
-    btn.addEventListener("click", resetToMainPane);
-  });
+  menu.classList.add("translate-y-full");
+  overlay.classList.add("opacity-0");
 
-  function resetToMainPane() {
-    mainPane.classList.remove("-translate-x-full");
-    document.querySelectorAll(".sub-pane").forEach(pane => {
-      pane.classList.add("translate-x-full");
-      setTimeout(() => pane.classList.add("hidden"), 300);
-    });
+  setTimeout(() => {
+    overlay.classList.add("hidden");
+    menu.classList.add("hidden");
+  }, 300);
+}
+
+export function openSheet(contentHTML) {
+  const overlay = document.getElementById("bottom-sheet-overlay");
+  const menu = document.getElementById("bottom-sheet-menu");
+  const contentArea = document.getElementById("sheet-content");
+
+  if (!overlay || !menu || !contentArea) return;
+
+  if (contentHTML) {
+    contentArea.innerHTML = contentHTML;
   }
 
-  initPreferenceToggles();
-  initExpiryCalculator();
+  menu.classList.remove("hidden");
+  overlay.classList.remove("hidden");
+
+  setTimeout(() => {
+    overlay.classList.remove("opacity-0");
+    menu.classList.remove("translate-y-full");
+  }, 10);
 }
 
 export function initDockBar() {
@@ -221,36 +215,48 @@ export function initDockBar() {
 function bindDockActions() {
   const credsBtn = document.getElementById("dock-creds-btn");
   const historyBtn = document.getElementById("dock-history-btn");
+  const scanBtn = document.getElementById("dock-scan-btn");
   const toolsBtn = document.getElementById("dock-tools-btn");
   const menuBtn = document.getElementById("dock-menu-btn");
 
+  // 1. Credentials Button
   if (credsBtn) {
-    credsBtn.addEventListener("click", () => window.showScannerView());
+    credsBtn.addEventListener("click", () => {
+      // TODO: Custom action/look for Credentials
+    });
   }
 
+  // 2. History Button
   if (historyBtn) {
-    historyBtn.addEventListener("click", () => openSheetSubPane("pane-history"));
+    historyBtn.addEventListener("click", () => {
+      // TODO: Custom action/look for History
+    });
   }
 
+  // 3. Center Hero Scan Button (Primary Action)
+  if (scanBtn) {
+    scanBtn.addEventListener("click", () => {
+      // Temporary fallback: triggers existing camera view
+      if (window.showScannerView) window.showScannerView();
+    });
+  }
+
+  // 4. Tools Button
   if (toolsBtn) {
-    toolsBtn.addEventListener("click", () => openSheetSubPane("pane-tools"));
+    toolsBtn.addEventListener("click", () => {
+      // TODO: Custom action/look for Tools
+    });
   }
 
+  // 5. Menu Button
   if (menuBtn) {
     menuBtn.addEventListener("click", () => {
-      const overlay = document.getElementById("bottom-sheet-overlay");
-      const menu = document.getElementById("bottom-sheet-menu");
-      if (overlay && menu) {
-        menu.classList.remove("hidden");
-        overlay.classList.remove("hidden");
-        setTimeout(() => {
-          overlay.classList.remove("opacity-0");
-          menu.classList.remove("translate-y-full");
-        }, 10);
-      }
+      // TODO: Custom action/look for Menu
     });
   }
 }
+
+// end of dock buttons
 
 function openSheetSubPane(paneId) {
   const overlay = document.getElementById("bottom-sheet-overlay");
