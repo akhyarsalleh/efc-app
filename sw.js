@@ -1,6 +1,6 @@
 // CertiFly Service Worker v1.4b
 
-const CACHE_NAME = 'certifly-cache-v1.4b';
+const CACHE_NAME = 'certifly-cache-v1.4x';
 
 // ASSET LIST: All local dependencies needed to run the app offline
 const ASSETS_TO_CACHE = [
