@@ -41,7 +41,4 @@ export const dockHTML = `
 
   </div>
 </div>
-`;  </button>
-
-</div>
 `;
