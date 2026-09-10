@@ -129,7 +129,6 @@ export function initBottomSheetMenu() {
     document.body.insertAdjacentHTML('beforeend', menuHTML);
   }
 
-  
   const overlay = document.getElementById("bottom-sheet-overlay");
   const menu = document.getElementById("bottom-sheet-menu");
   const mainPane = document.getElementById("pane-main");
@@ -138,11 +137,12 @@ export function initBottomSheetMenu() {
 
   if (!overlay || !menu) return;
 
- const closeSheet = () => {
+  const closeSheet = () => {
     menu.classList.add("translate-y-full");
     overlay.classList.add("opacity-0");
     setTimeout(() => {
       overlay.classList.add("hidden");
+      menu.classList.add("hidden");
       resetToMainPane();
     }, 300);
   };
@@ -186,7 +186,6 @@ export function initDockBar() {
   const dock = document.getElementById("persistent-dock");
   if (!dock) return;
 
-  // 1. Instantly align dock position with initial scroll position (no animation on load)
   let lastScrollY = window.scrollY;
   if (lastScrollY > 25) {
     dock.classList.add("translate-y-[150%]");
@@ -196,7 +195,6 @@ export function initDockBar() {
 
   const scrollThreshold = 10;
 
-  // 2. Listen for scroll events
   window.addEventListener("scroll", () => {
     const currentScrollY = window.scrollY;
     const scrollDelta = currentScrollY - lastScrollY;
@@ -243,6 +241,7 @@ function bindDockActions() {
       const overlay = document.getElementById("bottom-sheet-overlay");
       const menu = document.getElementById("bottom-sheet-menu");
       if (overlay && menu) {
+        menu.classList.remove("hidden");
         overlay.classList.remove("hidden");
         setTimeout(() => {
           overlay.classList.remove("opacity-0");
@@ -264,6 +263,7 @@ function openSheetSubPane(paneId) {
     targetPane.classList.remove("hidden");
     targetPane.classList.remove("translate-x-full");
 
+    menu.classList.remove("hidden");
     overlay.classList.remove("hidden");
     setTimeout(() => {
       overlay.classList.remove("opacity-0");
