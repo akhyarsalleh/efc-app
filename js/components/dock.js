@@ -23,7 +23,7 @@ export const dockHTML = `
       <span class="text-[9px] font-bold tracking-tight">History</span>
     </button>
 
-    <!-- 3. CENTER THREADS-STYLE SCAN BUTTON (WITH QR ICON) -->
+    <!-- 3. CENTER THREADS-STYLE SCAN BUTTON -->
     <button id="dock-scan-btn" class="flex flex-col items-center justify-center gap-1 text-blue-600 dark:text-blue-400 bg-blue-100/70 dark:bg-blue-900/40 px-2 py-1 rounded-xl active:scale-95 transition-all w-[88%] my-auto">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
@@ -32,10 +32,10 @@ export const dockHTML = `
       <span class="text-[9px] font-extrabold tracking-tight">Scan</span>
     </button>
 
-    <!-- 4. Tools Button -->
+    <!-- 4. Tools Button (Updated Calculator Icon) -->
     <button id="dock-tools-btn" class="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 p-1.5 active:scale-95 transition-transform w-full">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.67 2.67 0 0021 17.25l-5.83-5.83M11.42 15.17l2.496-3.03c.317-.384.74-.664 1.208-.802l2.368-.701a2.67 2.67 0 00-1.851-5.07l-2.368.701c-.468.138-.891.418-1.208.802l-2.496 3.03M11.42 15.17l-4.655 5.653a2.67 2.67 0 01-3.776-3.776l5.653-4.655"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V13.5Zm0 2.25h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V18Zm2.498-6.75h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V13.5Zm0 2.25h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V18Zm2.504-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5Zm0 2.25h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V18Zm2.498-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5ZM8.25 6h7.5v2.25h-7.5V6ZM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0 0 12 2.25Z" />
       </svg>
       <span class="text-[9px] font-bold tracking-tight">Tools</span>
     </button>
