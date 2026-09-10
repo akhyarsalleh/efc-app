@@ -2,6 +2,9 @@
 
 import { stopScanner } from './scanner.js';
 import { renderHistoryList } from './storage.js';
+import { menuHTML } from './components/menu.js';
+
+//-----------------------------------------------------------------
 
 export function updateNetworkStatus() {
   const isOnline = navigator.onLine;
@@ -114,3 +117,146 @@ export function showError(msg) {
 
 // Bind showScannerView to window for inline HTML header onclick compatibility
 window.showScannerView = showScannerView;
+
+//menu functions
+export function initBottomSheetMenu() {
+  // Inject component markup into DOM if not already present
+  if (!document.getElementById("bottom-sheet-menu")) {
+    document.body.insertAdjacentHTML('beforeend', menuHTML);
+  }
+
+  const fab = document.getElementById("menu-toggle-btn");
+  const overlay = document.getElementById("bottom-sheet-overlay");
+  const menu = document.getElementById("bottom-sheet-menu");
+  const mainPane = document.getElementById("pane-main");
+  const navButtons = document.querySelectorAll(".nav-item-btn");
+  const backButtons = document.querySelectorAll(".back-btn");
+
+  if (!fab || !overlay || !menu) return;
+
+  // Open Sheet
+  fab.addEventListener("click", () => {
+    overlay.classList.remove("hidden");
+    setTimeout(() => {
+      overlay.classList.remove("opacity-0");
+      menu.classList.remove("translate-y-full");
+    }, 10);
+  });
+
+  // Close Sheet Function
+  const closeSheet = () => {
+    menu.classList.add("translate-y-full");
+    overlay.classList.add("opacity-0");
+    setTimeout(() => {
+      overlay.classList.add("hidden");
+      resetToMainPane();
+    }, 300);
+  };
+
+  overlay.addEventListener("click", closeSheet);
+
+  // Navigate to Sub-Pane
+  navButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.getAttribute("data-target");
+      const targetPane = document.getElementById(targetId);
+
+      if (targetPane) {
+        mainPane.classList.add("-translate-x-full");
+        targetPane.classList.remove("hidden");
+        setTimeout(() => targetPane.classList.remove("translate-x-full"), 10);
+      }
+    });
+  });
+
+  // Back Button Navigation
+  backButtons.forEach(btn => {
+    btn.addEventListener("click", resetToMainPane);
+  });
+
+  function resetToMainPane() {
+    mainPane.classList.remove("-translate-x-full");
+    document.querySelectorAll(".sub-pane").forEach(pane => {
+      pane.classList.add("translate-x-full");
+      setTimeout(() => pane.classList.add("hidden"), 300);
+    });
+  }
+
+  // Bind Settings & Calculator Listeners
+  initPreferenceToggles();
+  initExpiryCalculator();
+}
+
+// Dark Mode & Text Size Toggles
+function initPreferenceToggles() {
+  const darkBtn = document.getElementById("dark-mode-toggle");
+  const textBtn = document.getElementById("text-size-toggle");
+
+  if (darkBtn) {
+    darkBtn.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("certifly_theme", isDark ? "dark" : "light");
+    });
+  }
+
+  if (textBtn) {
+    textBtn.addEventListener("click", () => {
+      const mainContent = document.querySelector("main");
+      if (mainContent) {
+        const isBigger = mainContent.classList.toggle("text-scale-large");
+        const iconNormal = document.getElementById("icon-text-normal");
+        const iconBigger = document.getElementById("icon-text-bigger");
+        if (iconNormal && iconBigger) {
+          iconNormal.classList.toggle("hidden", isBigger);
+          iconBigger.classList.toggle("hidden", !isBigger);
+        }
+        localStorage.setItem("certifly_font_size", isBigger ? "large" : "normal");
+      }
+    });
+  }
+}
+
+export function loadSavedPreferences() {
+  const savedTheme = localStorage.getItem("certifly_theme");
+  if (savedTheme === "dark") {
+    document.documentElement.classList.add("dark");
+  }
+
+  const savedFontSize = localStorage.getItem("certifly_font_size");
+  if (savedFontSize === "large") {
+    const mainContent = document.querySelector("main");
+    if (mainContent) mainContent.classList.add("text-scale-large");
+  }
+}
+
+// Expiry Calculator Logic
+function initExpiryCalculator() {
+  const baseDateInput = document.getElementById("calc-base-date");
+  const durationBtns = document.querySelectorAll(".calc-duration-btn");
+  const resultBox = document.getElementById("calc-result-box");
+  const resultDate = document.getElementById("calc-result-date");
+
+  if (!baseDateInput) return;
+
+  baseDateInput.valueAsDate = new Date();
+
+  durationBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const months = parseInt(btn.getAttribute("data-months"), 10);
+      const baseDate = new Date(baseDateInput.value);
+
+      if (isNaN(baseDate.getTime())) return;
+
+      baseDate.setMonth(baseDate.getMonth() + months);
+
+      const formatted = baseDate.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).toUpperCase();
+
+      if (resultDate) resultDate.textContent = formatted;
+      if (resultBox) resultBox.classList.remove("hidden");
+    });
+  });
+}
