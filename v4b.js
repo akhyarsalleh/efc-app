@@ -4,10 +4,19 @@ import { PROXY_URL, DEFAULT_THRESHOLD } from './js/config.js';
 import { parseLicenseDOM } from './js/parser.js';
 import { saveToHistory, renderHistoryList, getScanHistory } from './js/storage.js';
 import { startScanner, stopScanner } from './js/scanner.js';
-import { updateNetworkStatus, showScannerView, showLoading, showError, showView } from './js/ui.js';
-import { initBottomSheetMenu, loadSavedPreferences } from './js/ui.js';
-import { initBottomSheetMenu, initDockBar, loadSavedPreferences } from './js/ui.js';
-
+//import { updateNetworkStatus, showScannerView, showLoading, showError, showView } from './js/ui.js';
+//import { initBottomSheetMenu, loadSavedPreferences } from './js/ui.js';
+//import { initBottomSheetMenu, initDockBar, loadSavedPreferences } from './js/ui.js';
+import { 
+  updateNetworkStatus, 
+  showScannerView, 
+  showLoading, 
+  showError, 
+  showView,
+  initBottomSheetMenu,
+  initDockBar,
+  loadSavedPreferences 
+} from './js/ui.js';
 
 //------------------------------------------------------
 
