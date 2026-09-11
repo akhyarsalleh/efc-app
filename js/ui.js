@@ -1,13 +1,92 @@
-// js/ui.js - View State and Connection UI Controller
+// js/ui.js - View State, Navigation, and Connection UI Controller
 
 import { stopScanner } from './scanner.js';
 import { renderHistoryList } from './storage.js';
-import { menuHTML } from './components/menu.js';
+import { topbarHTML } from './components/topbar.js';
 import { dockHTML } from './components/dock.js';
 
+// ----------------------------------------------------
+// 1. DUAL NAVIGATION BARS (Top Bar + Bottom Dock)
+// ----------------------------------------------------
+export function initNavigationBars() {
+  // Inject Top Bar if not present
+  if (!document.getElementById("persistent-topbar")) {
+    document.body.insertAdjacentHTML('afterbegin', topbarHTML);
+  }
 
-//-----------------------------------------------------------------
+  // Inject Bottom Dock if not present
+  if (!document.getElementById("persistent-dock")) {
+    document.body.insertAdjacentHTML('beforeend', dockHTML);
+  }
 
+  const topbar = document.getElementById("persistent-topbar");
+  const dock = document.getElementById("persistent-dock");
+
+  const topbarMaxTravel = 48; // Top bar height (48px)
+  const dockMaxTravel = 80;   // Dock translation distance
+
+  let currentTranslateY = 0; // 0 = Dock visible, Topbar hidden
+
+  const getMaxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+  let lastClampedScrollY = Math.max(0, Math.min(window.scrollY, getMaxScrollY()));
+
+  // Dual Symmetrical Scroll Listener
+  window.addEventListener("scroll", () => {
+    const maxScrollY = getMaxScrollY();
+    const clampedScrollY = Math.max(0, Math.min(window.scrollY, maxScrollY));
+    const delta = clampedScrollY - lastClampedScrollY;
+
+    // At top of page (<= 2px): Dock is fully visible, Top Bar is fully hidden
+    if (clampedScrollY <= 2) {
+      currentTranslateY = 0;
+    } 
+    // Scroll movement within document bounds
+    else if (delta !== 0) {
+      currentTranslateY += delta;
+      currentTranslateY = Math.max(0, Math.min(currentTranslateY, topbarMaxTravel));
+    }
+
+    // Apply synchronized transform & opacity
+    const progress = currentTranslateY / topbarMaxTravel; // Range 0..1
+
+    if (dock) {
+      dock.style.transform = `translateY(${progress * dockMaxTravel}px)`;
+    }
+
+    if (topbar) {
+      const topbarTranslate = (1 - progress) * -100;
+      topbar.style.transform = `translateY(${topbarTranslate}%)`;
+      topbar.style.opacity = progress > 0.05 ? "1" : "0";
+    }
+
+    lastClampedScrollY = clampedScrollY;
+  }, { passive: true });
+
+  // Start Live Real-Time UTC Ticker
+  startUTCClock();
+}
+
+// Live UTC / Zulu Clock Ticker
+function startUTCClock() {
+  const clockEl = document.getElementById("topbar-utc-clock");
+  if (!clockEl) return;
+
+  function tick() {
+    const now = new Date();
+    const hours = String(now.getUTCHours()).padStart(2, '0');
+    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+    clockEl.innerText = `${hours}:${minutes}:${seconds}Z`;
+  }
+
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ----------------------------------------------------
+// 2. NETWORK STATUS CONTROLLER
+// ----------------------------------------------------
 export function updateNetworkStatus() {
   const isOnline = navigator.onLine;
   const overlay = document.getElementById("offline-overlay");
@@ -16,6 +95,7 @@ export function updateNetworkStatus() {
   const manualInput = document.getElementById("manual-url-input");
   const openOriginalBtn = document.getElementById("open-original-btn");
   const checkerBadge = document.getElementById("checker-status-badge");
+  const topbarNetStatus = document.getElementById("topbar-net-status");
 
   if (overlay) {
     if (isOnline) {
@@ -33,6 +113,16 @@ export function updateNetworkStatus() {
     } else {
       checkerBadge.innerText = "Cached View";
       checkerBadge.className = "text-[10px] text-gray-50 bg-gray-500 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
+    }
+  }
+
+  if (topbarNetStatus) {
+    if (isOnline) {
+      topbarNetStatus.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase transition-all duration-300 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400";
+      topbarNetStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>Online</span>`;
+    } else {
+      topbarNetStatus.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase transition-all duration-300 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400";
+      topbarNetStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><span>Offline</span>`;
     }
   }
 
@@ -59,6 +149,9 @@ export function updateNetworkStatus() {
   }
 }
 
+// ----------------------------------------------------
+// 3. VIEW STATE CONTROLLER
+// ----------------------------------------------------
 export function showView(viewId) {
   document.querySelectorAll(".app-view").forEach(view => {
     view.classList.add("hidden");
@@ -117,242 +210,5 @@ export function showError(msg) {
   showView("scanner-view");
 }
 
-// Bind showScannerView to window for inline HTML header onclick compatibility
+// Global binding for inline HTML compatibility
 window.showScannerView = showScannerView;
-
-// ==========================================
-// DOCK & MENU INITIALIZATION LOGIC
-// ==========================================
-
-export function initBottomSheetMenu() {
-  if (!document.getElementById("bottom-sheet-menu")) {
-    document.body.insertAdjacentHTML('beforeend', menuHTML);
-  }
-
-  const overlay = document.getElementById("bottom-sheet-overlay");
-  const menu = document.getElementById("bottom-sheet-menu");
-
-  if (!overlay || !menu) return;
-
-  overlay.addEventListener("click", closeSheet);
-}
-
-export function closeSheet() {
-  const overlay = document.getElementById("bottom-sheet-overlay");
-  const menu = document.getElementById("bottom-sheet-menu");
-
-  if (!overlay || !menu) return;
-
-  menu.classList.add("translate-y-full");
-  overlay.classList.add("opacity-0");
-
-  setTimeout(() => {
-    overlay.classList.add("hidden");
-    menu.classList.add("hidden");
-  }, 300);
-}
-
-export function openSheet(contentHTML) {
-  const overlay = document.getElementById("bottom-sheet-overlay");
-  const menu = document.getElementById("bottom-sheet-menu");
-  const contentArea = document.getElementById("sheet-content");
-
-  if (!overlay || !menu || !contentArea) return;
-
-  if (contentHTML) {
-    contentArea.innerHTML = contentHTML;
-  }
-
-  menu.classList.remove("hidden");
-  overlay.classList.remove("hidden");
-
-  setTimeout(() => {
-    overlay.classList.remove("opacity-0");
-    menu.classList.remove("translate-y-full");
-  }, 10);
-}
-
-// initDockBar
-
-export function initDockBar() {
-  if (!document.getElementById("persistent-dock")) {
-    document.body.insertAdjacentHTML('beforeend', dockHTML);
-  }
-
-  const dock = document.getElementById("persistent-dock");
-  if (!dock) return;
-
-  const dockHeight = 80; // Total pixels to hide the bar
-  let currentTranslateY = 0;
-
-  // Helper to get max valid scrollable distance
-  const getMaxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-
-  // Initial clamped scroll position
-  let lastClampedScrollY = Math.max(0, Math.min(window.scrollY, getMaxScrollY()));
-
-  window.addEventListener("scroll", () => {
-    const maxScrollY = getMaxScrollY();
-    
-    // 1. Clamp scrollY strictly between 0 and document bounds
-    const clampedScrollY = Math.max(0, Math.min(window.scrollY, maxScrollY));
-    const delta = clampedScrollY - lastClampedScrollY;
-
-    // 2. Always show navbar fully at the very top of the page
-    if (clampedScrollY <= 2) {
-      currentTranslateY = 0;
-    } 
-    // 3. Only translate when there is true in-bounds scroll movement
-    else if (delta !== 0) {
-      currentTranslateY += delta;
-      // Clamp translation: 0 = fully visible, dockHeight = fully hidden
-      currentTranslateY = Math.max(0, Math.min(currentTranslateY, dockHeight));
-    }
-
-    // Apply transform immediately
-    dock.style.transform = `translateY(${currentTranslateY}px)`;
-    lastClampedScrollY = clampedScrollY;
-  }, { passive: true });
-
-  bindDockActions();
-}
-
-
-function bindDockActions() {
-  const dashboardBtn = document.getElementById("dock-dashboard-btn");
-  const historyBtn = document.getElementById("dock-history-btn");
-  const scanBtn = document.getElementById("dock-scan-btn");
-  const toolsBtn = document.getElementById("dock-tools-btn");
-  const menuBtn = document.getElementById("dock-menu-btn");
-
-  // 1. Dashboard Button (Returns home to scanner/dashboard view)
-  if (dashboardBtn) {
-    dashboardBtn.addEventListener("click", () => {
-      if (window.showScannerView) window.showScannerView();
-    });
-  }
-
-
-  // 2. History Button
-  if (historyBtn) {
-    historyBtn.addEventListener("click", () => {
-      // TODO: Custom action/look for History
-    });
-  }
-
-  // 3. Center Hero Scan Button (Primary Action)
-  if (scanBtn) {
-    scanBtn.addEventListener("click", () => {
-      // Temporary fallback: triggers existing camera view
-      if (window.showScannerView) window.showScannerView();
-    });
-  }
-
-  // 4. Tools Button
-  if (toolsBtn) {
-    toolsBtn.addEventListener("click", () => {
-      // TODO: Custom action/look for Tools
-    });
-  }
-
-  // 5. Menu Button
-  if (menuBtn) {
-    menuBtn.addEventListener("click", () => {
-      // TODO: Custom action/look for Menu
-    });
-  }
-}
-
-// end of dock buttons
-
-function openSheetSubPane(paneId) {
-  const overlay = document.getElementById("bottom-sheet-overlay");
-  const menu = document.getElementById("bottom-sheet-menu");
-  const mainPane = document.getElementById("pane-main");
-  const targetPane = document.getElementById(paneId);
-
-  if (overlay && menu && targetPane) {
-    mainPane.classList.add("-translate-x-full");
-    targetPane.classList.remove("hidden");
-    targetPane.classList.remove("translate-x-full");
-
-    menu.classList.remove("hidden");
-    overlay.classList.remove("hidden");
-    setTimeout(() => {
-      overlay.classList.remove("opacity-0");
-      menu.classList.remove("translate-y-full");
-    }, 10);
-  }
-}
-
-function initPreferenceToggles() {
-  const darkBtn = document.getElementById("dark-mode-toggle");
-  const textBtn = document.getElementById("text-size-toggle");
-
-  if (darkBtn) {
-    darkBtn.addEventListener("click", () => {
-      const isDark = document.documentElement.classList.toggle("dark");
-      localStorage.setItem("certifly_theme", isDark ? "dark" : "light");
-    });
-  }
-
-  if (textBtn) {
-    textBtn.addEventListener("click", () => {
-      const mainContent = document.querySelector("main");
-      if (mainContent) {
-        const isBigger = mainContent.classList.toggle("text-scale-large");
-        const iconNormal = document.getElementById("icon-text-normal");
-        const iconBigger = document.getElementById("icon-text-bigger");
-        if (iconNormal && iconBigger) {
-          iconNormal.classList.toggle("hidden", isBigger);
-          iconBigger.classList.toggle("hidden", !isBigger);
-        }
-        localStorage.setItem("certifly_font_size", isBigger ? "large" : "normal");
-      }
-    });
-  }
-}
-
-export function loadSavedPreferences() {
-  const savedTheme = localStorage.getItem("certifly_theme");
-  if (savedTheme === "dark") {
-    document.documentElement.classList.add("dark");
-  }
-
-  const savedFontSize = localStorage.getItem("certifly_font_size");
-  if (savedFontSize === "large") {
-    const mainContent = document.querySelector("main");
-    if (mainContent) mainContent.classList.add("text-scale-large");
-  }
-}
-
-function initExpiryCalculator() {
-  const baseDateInput = document.getElementById("calc-base-date");
-  const durationBtns = document.querySelectorAll(".calc-duration-btn");
-  const resultBox = document.getElementById("calc-result-box");
-  const resultDate = document.getElementById("calc-result-date");
-
-  if (!baseDateInput) return;
-
-  baseDateInput.valueAsDate = new Date();
-
-  durationBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const months = parseInt(btn.getAttribute("data-months"), 10);
-      const baseDate = new Date(baseDateInput.value);
-
-      if (isNaN(baseDate.getTime())) return;
-
-      baseDate.setMonth(baseDate.getMonth() + months);
-
-      const formatted = baseDate.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
-      }).toUpperCase();
-
-      if (resultDate) resultDate.textContent = formatted;
-      if (resultBox) resultBox.classList.remove("hidden");
-    });
-  });
-}
