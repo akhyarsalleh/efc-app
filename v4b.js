@@ -4,47 +4,13 @@ import { PROXY_URL, DEFAULT_THRESHOLD } from './js/config.js';
 import { parseLicenseDOM } from './js/parser.js';
 import { saveToHistory, renderHistoryList, getScanHistory } from './js/storage.js';
 import { startScanner, stopScanner } from './js/scanner.js';
-//import { updateNetworkStatus, showScannerView, showLoading, showError, showView } from './js/ui.js';
-//import { initBottomSheetMenu, loadSavedPreferences } from './js/ui.js';
-//import { initBottomSheetMenu, initDockBar, loadSavedPreferences } from './js/ui.js';
-import { 
-  updateNetworkStatus, 
-  showScannerView, 
-  showLoading, 
-  showError, 
-  showView,
-  initBottomSheetMenu,
-  initNavigationBars,
-  loadSavedPreferences 
-} from './js/ui.js';
-
-//------------------------------------------------------
-
-// Force browser to disable scroll memory and return to top on refresh
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual';
-}
-
-// Scroll to top immediately when script loads
-window.scrollTo(0, 0);
-
-// Extra safeguard for pull-to-refresh / reload gestures
-window.addEventListener('beforeunload', () => {
-  window.scrollTo(0, 0);
-});
+import { updateNetworkStatus, showScannerView, showLoading, showError, showView, initNavigationBars } from './js/ui.js';
 
 let lastScannedUrl = "";
 
 document.addEventListener("DOMContentLoaded", () => {
   initApp();
-    // Initialize the top bar & bottom dock
-  initNavigationBars();
-  
-  // Set up network listeners
-  updateNetworkStatus();
-  window.addEventListener("online", updateNetworkStatus);
-  window.addEventListener("offline", updateNetworkStatus);
-  
+  initNavigationBars(); // Initializes both persistent top bar & bottom dock
 });
 
 function initApp() {
@@ -60,6 +26,7 @@ function initApp() {
   if (scanNewBtn) scanNewBtn.addEventListener("click", showScannerView);
   if (openOriginalBtn) openOriginalBtn.addEventListener("click", openOriginalLicense);
 
+  // Prevent default contextual actions on app shell
   document.addEventListener('contextmenu', (event) => {
     if (event.target.id === "manual-url-input") return;
     event.preventDefault();
@@ -75,14 +42,15 @@ function initApp() {
     event.preventDefault();
   });
 
+  // Set up network listeners
   window.addEventListener("online", updateNetworkStatus);
   window.addEventListener("offline", updateNetworkStatus);
   updateNetworkStatus();
 
+  // Handle history card outside clicks
   document.addEventListener("click", (event) => {
     const historyDetails = document.getElementById("history-details");
     const historyWrapper = document.getElementById("history-card-wrapper");
-
     if (historyDetails && historyDetails.hasAttribute("open")) {
       if (historyWrapper && !historyWrapper.contains(event.target)) {
         historyDetails.removeAttribute("open");
@@ -91,13 +59,8 @@ function initApp() {
   });
 
   renderHistoryList();
-  //load any future function init here
-  loadSavedPreferences();
-  initBottomSheetMenu();
-  initNavigationBars(); 
-  
-} // end of func initApp()
-  //---------------------------------
+}
+
 function handleManualUrl() {
   const urlInput = document.getElementById("manual-url-input").value.trim();
   if (!urlInput) {
@@ -105,7 +68,7 @@ function handleManualUrl() {
     return;
   }
 
-  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") && 
+  if (!urlInput.startsWith("http://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?") &&
       !urlInput.startsWith("https://eclipse.caam.gov.my/ELICENSING/userprofileqr.do?")) {
     showError("Please enter a valid licence page URL");
     return;
@@ -159,9 +122,10 @@ async function processLicenseUrl(url) {
     const htmlText = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, "text/html");
-    const results = parseLicenseDOM(doc, DEFAULT_THRESHOLD);
 
+    const results = parseLicenseDOM(doc, DEFAULT_THRESHOLD);
     results.scanTime = scanTime;
+
     saveToHistory(results, url);
     renderResults(results);
 
@@ -256,6 +220,7 @@ function renderResults(results) {
           ${statusHtml}
         </div>
       `;
+
       container.appendChild(qRow);
     });
   }
