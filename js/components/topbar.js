@@ -21,8 +21,8 @@ export const topbarHTML = `
       <!-- Thin Vertical Line Separator -->
       <div class="w-px h-4 bg-white/20"></div>
 
-      <!-- Compact Logo (Proportionate to Landing Page Header) -->
-      <div class="flex items-center gap-1.5 font-semibold italic text-xs tracking-tight pointer-events-none">
+      <!-- Compact Logo (Tightened Gap Between ™ and Wau Logo) -->
+      <div class="flex items-center gap-0.5 font-semibold italic text-xs tracking-tight pointer-events-none">
         <span class="leading-none">
           CertiFly<span class="align-super text-[6px] font-bold ml-0.5">™</span>
         </span>
