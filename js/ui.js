@@ -212,18 +212,19 @@ export function initDockBar() {
 
 
 function bindDockActions() {
-  const credsBtn = document.getElementById("dock-creds-btn");
+  const dashboardBtn = document.getElementById("dock-dashboard-btn");
   const historyBtn = document.getElementById("dock-history-btn");
   const scanBtn = document.getElementById("dock-scan-btn");
   const toolsBtn = document.getElementById("dock-tools-btn");
   const menuBtn = document.getElementById("dock-menu-btn");
 
-  // 1. Credentials Button
-  if (credsBtn) {
-    credsBtn.addEventListener("click", () => {
-      // TODO: Custom action/look for Credentials
+  // 1. Dashboard Button (Returns home to scanner/dashboard view)
+  if (dashboardBtn) {
+    dashboardBtn.addEventListener("click", () => {
+      if (window.showScannerView) window.showScannerView();
     });
   }
+
 
   // 2. History Button
   if (historyBtn) {
