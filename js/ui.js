@@ -172,6 +172,8 @@ export function openSheet(contentHTML) {
   }, 10);
 }
 
+// initDockBar
+
 export function initDockBar() {
   if (!document.getElementById("persistent-dock")) {
     document.body.insertAdjacentHTML('beforeend', dockHTML);
@@ -180,31 +182,36 @@ export function initDockBar() {
   const dock = document.getElementById("persistent-dock");
   if (!dock) return;
 
-  let lastScrollY = window.scrollY;
+  const dockHeight = 80; // Total pixels to hide the bar
   let currentTranslateY = 0;
-  const dockHeight = 80; // Total pixels to hide the bar (64px height + shadow)
+
+  // Helper to get max valid scrollable distance
+  const getMaxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+  // Initial clamped scroll position
+  let lastClampedScrollY = Math.max(0, Math.min(window.scrollY, getMaxScrollY()));
 
   window.addEventListener("scroll", () => {
-    const currentScrollY = window.scrollY;
-    const delta = currentScrollY - lastScrollY;
+    const maxScrollY = getMaxScrollY();
+    
+    // 1. Clamp scrollY strictly between 0 and document bounds
+    const clampedScrollY = Math.max(0, Math.min(window.scrollY, maxScrollY));
+    const delta = clampedScrollY - lastClampedScrollY;
 
-    // Reset to fully visible at the top of the page
-    if (currentScrollY <= 2) {
+    // 2. Always show navbar fully at the very top of the page
+    if (clampedScrollY <= 2) {
       currentTranslateY = 0;
-    } else {
-      // Accumulate the scroll movement into the translation
+    } 
+    // 3. Only translate when there is true in-bounds scroll movement
+    else if (delta !== 0) {
       currentTranslateY += delta;
-      
-      // Clamp the value: 
-      // 0 = fully visible
-      // dockHeight = fully hidden
+      // Clamp translation: 0 = fully visible, dockHeight = fully hidden
       currentTranslateY = Math.max(0, Math.min(currentTranslateY, dockHeight));
     }
 
-    // Apply the translation instantly to follow the scroll rate
+    // Apply transform immediately
     dock.style.transform = `translateY(${currentTranslateY}px)`;
-    
-    lastScrollY = currentScrollY;
+    lastClampedScrollY = clampedScrollY;
   }, { passive: true });
 
   bindDockActions();
