@@ -33,25 +33,22 @@ export const topbarHTML = `
       </div>
     </div>
 
-    <!-- Right: Preference Toggles Box -->
+    <!-- Right: Preference Toggles Box (Wider Horizontal Padding) -->
     <div class="flex items-center border border-white/20 rounded-lg overflow-hidden h-8">
-      <!-- Text Size Toggle with New A-a Caret SVG -->
+      <!-- Text Size Toggle -->
       <button id="topbar-text-btn" 
-              class="p-2 hover:bg-white/10 active:bg-white/20 transition-colors border-r border-white/20 flex items-center justify-center cursor-pointer" 
+              class="px-3.5 py-1.5 hover:bg-white/10 active:bg-white/20 transition-colors border-r border-white/20 flex items-center justify-center cursor-pointer" 
               aria-label="Toggle Text Size">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Small A -->
           <path d="M4 18l3-7 3 7M5 15h4" />
-          <!-- Large A -->
           <path d="M13 18l4-11 4 11M14 14h6" />
-          <!-- Up/Down Caret Indicator -->
           <path d="M11 5l1-1 1 1" />
         </svg>
       </button>
 
       <!-- Theme / Appearance Toggle -->
       <button id="topbar-theme-btn" 
-              class="p-2 hover:bg-white/10 active:bg-white/20 transition-colors flex items-center justify-center cursor-pointer" 
+              class="px-3.5 py-1.5 hover:bg-white/10 active:bg-white/20 transition-colors flex items-center justify-center cursor-pointer" 
               aria-label="Toggle Appearance">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3v2.25m0 13.5V21m8.966-8.966h-2.25m-13.5 0H3m15.364-6.364l-1.591 1.591M6.758 17.242l-1.591 1.591m12.728 0l-1.591-1.591M6.758 6.758L5.167 5.167M12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5z" />
