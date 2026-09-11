@@ -33,7 +33,7 @@ export const topbarHTML = `
       </div>
     </div>
 
-    <!-- Right: Preference Toggles Box (Fixed Full-Height Buttons) -->
+    <!-- Right: Preference Toggles Box (Edge-to-Edge Full Height Fill) -->
     <div class="flex items-stretch border border-white/20 rounded-lg overflow-hidden h-8">
       <!-- Text Size Toggle -->
       <button id="topbar-text-btn" 
@@ -46,13 +46,11 @@ export const topbarHTML = `
         </svg>
       </button>
 
-      <!-- Theme / Appearance Toggle -->
+      <!-- Theme / Appearance Toggle (Dynamic Mini Solid Icon) -->
       <button id="topbar-theme-btn" 
               class="h-full px-3.5 hover:bg-white/10 active:bg-white/20 transition-colors flex items-center justify-center cursor-pointer" 
               aria-label="Toggle Appearance">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3v2.25m0 13.5V21m8.966-8.966h-2.25m-13.5 0H3m15.364-6.364l-1.591 1.591M6.758 17.242l-1.591 1.591m12.728 0l-1.591-1.591M6.758 6.758L5.167 5.167M12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5z" />
-        </svg>
+        <!-- Dynamic icon injected by applyThemeMode() -->
       </button>
     </div>
 
