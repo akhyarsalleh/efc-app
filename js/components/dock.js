@@ -2,10 +2,10 @@
 export const dockHTML = `
 <!-- PERSISTENT FULL-WIDTH BOTTOM NAVIGATION BAR -->
 <div id="persistent-dock" 
-     class="fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 shadow-lg z-40 transition-transform duration-300 ease-in-out transform translate-y-0">
+     class="fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 shadow-lg z-40 transform translate-y-0 will-change-transform">
   
-  <!-- 5-Column Centered Equal Grid -->
   <div class="max-w-md mx-auto h-full grid grid-cols-5 items-center justify-items-center px-1">
+
     
     <!-- 1. Credentials Button -->
     <button id="dock-creds-btn" class="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 p-1.5 active:scale-95 transition-transform w-full">
