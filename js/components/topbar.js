@@ -33,20 +33,16 @@ export const topbarHTML = `
       </div>
     </div>
 
-    <!-- Right: Preference Toggles Box (Edge-to-Edge Full Height Fill) -->
+    <!-- Right: Preference Toggles Box (Dynamic 3-State Icons) -->
     <div class="flex items-stretch border border-white/20 rounded-lg overflow-hidden h-8">
-      <!-- Text Size Toggle -->
+      <!-- Dynamic Text Size Toggle -->
       <button id="topbar-text-btn" 
               class="h-full px-3.5 hover:bg-white/10 active:bg-white/20 transition-colors border-r border-white/20 flex items-center justify-center cursor-pointer" 
               aria-label="Toggle Text Size">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 18l3-7 3 7M5 15h4" />
-          <path d="M13 18l4-11 4 11M14 14h6" />
-          <path d="M11 5l1-1 1 1" />
-        </svg>
+        <!-- Dynamic icon injected by applyTextSize() -->
       </button>
 
-      <!-- Theme / Appearance Toggle (Dynamic Mini Solid Icon) -->
+      <!-- Dynamic Theme / Appearance Toggle -->
       <button id="topbar-theme-btn" 
               class="h-full px-3.5 hover:bg-white/10 active:bg-white/20 transition-colors flex items-center justify-center cursor-pointer" 
               aria-label="Toggle Appearance">
