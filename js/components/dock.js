@@ -7,12 +7,12 @@ export const dockHTML = `
   <div class="max-w-md mx-auto h-full grid grid-cols-5 items-center justify-items-center px-1">
 
     
-    <!-- 1. Credentials Button -->
-    <button id="dock-creds-btn" class="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 p-1.5 active:scale-95 transition-transform w-full">
+    <!-- 1. Dashboard Button -->
+    <button id="dock-dashboard-btn" class="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 p-1.5 active:scale-95 transition-transform w-full">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"></path>
       </svg>
-      <span class="text-[9px] font-bold tracking-tight">Credentials</span>
+      <span class="text-[9px] font-bold tracking-tight">Dashboard</span>
     </button>
 
     <!-- 2. History Button -->
