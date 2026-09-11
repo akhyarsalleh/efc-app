@@ -1,4 +1,4 @@
-// js/ui.js - View State and Connection UI Controller
+// js/ui.js - View State, Navigation, and Network Controller
 
 import { stopScanner } from './scanner.js';
 import { renderHistoryList } from './storage.js';
@@ -6,13 +6,15 @@ import { topbarHTML } from './components/topbar.js';
 import { dockHTML } from './components/dock.js';
 
 // ----------------------------------------------------
-// 1. DUAL NAVIGATION BARS (Top Bar + Bottom Dock)
+// 1. DUAL NAVIGATION BARS (Redesigned Top Bar + Dock)
 // ----------------------------------------------------
 export function initNavigationBars() {
+  // Inject Top Bar if not present
   if (!document.getElementById("persistent-topbar")) {
     document.body.insertAdjacentHTML('afterbegin', topbarHTML);
   }
 
+  // Inject Bottom Dock if not present
   if (!document.getElementById("persistent-dock")) {
     document.body.insertAdjacentHTML('beforeend', dockHTML);
   }
@@ -20,15 +22,14 @@ export function initNavigationBars() {
   const topbar = document.getElementById("persistent-topbar");
   const dock = document.getElementById("persistent-dock");
 
-  const topbarMaxTravel = 48; // Top bar height
-  const dockMaxTravel = 80;   // Dock translation distance
+  const topbarHeight = 48; // 48px height (h-12)
+  const dockMaxTravel = 80;
 
   let currentTranslateY = 0;
-
   const getMaxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-
   let lastClampedScrollY = Math.max(0, Math.min(window.scrollY, getMaxScrollY()));
 
+  // Synchronized Dual-Scroll Motion Listener
   window.addEventListener("scroll", () => {
     const maxScrollY = getMaxScrollY();
     const clampedScrollY = Math.max(0, Math.min(window.scrollY, maxScrollY));
@@ -38,10 +39,10 @@ export function initNavigationBars() {
       currentTranslateY = 0;
     } else if (delta !== 0) {
       currentTranslateY += delta;
-      currentTranslateY = Math.max(0, Math.min(currentTranslateY, topbarMaxTravel));
+      currentTranslateY = Math.max(0, Math.min(currentTranslateY, topbarHeight));
     }
 
-    const progress = currentTranslateY / topbarMaxTravel;
+    const progress = currentTranslateY / topbarHeight;
 
     if (dock) {
       dock.style.transform = `translateY(${progress * dockMaxTravel}px)`;
@@ -56,23 +57,14 @@ export function initNavigationBars() {
     lastClampedScrollY = clampedScrollY;
   }, { passive: true });
 
-  startUTCClock();
-}
+  // Connect Top Bar toggle buttons to menu controls
+  document.getElementById("topbar-text-btn")?.addEventListener("click", () => {
+    document.getElementById("text-size-toggle")?.click();
+  });
 
-function startUTCClock() {
-  const clockEl = document.getElementById("topbar-utc-clock");
-  if (!clockEl) return;
-
-  function tick() {
-    const now = new Date();
-    const hours = String(now.getUTCHours()).padStart(2, '0');
-    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-    clockEl.innerText = `${hours}:${minutes}:${seconds}Z`;
-  }
-
-  tick();
-  setInterval(tick, 1000);
+  document.getElementById("topbar-theme-btn")?.addEventListener("click", () => {
+    document.getElementById("dark-mode-toggle")?.click();
+  });
 }
 
 // ----------------------------------------------------
@@ -86,7 +78,6 @@ export function updateNetworkStatus() {
   const manualInput = document.getElementById("manual-url-input");
   const openOriginalBtn = document.getElementById("open-original-btn");
   const checkerBadge = document.getElementById("checker-status-badge");
-  const topbarNetStatus = document.getElementById("topbar-net-status");
 
   if (overlay) {
     if (isOnline) {
@@ -104,16 +95,6 @@ export function updateNetworkStatus() {
     } else {
       checkerBadge.innerText = "Cached View";
       checkerBadge.className = "text-[10px] text-gray-50 bg-gray-500 px-2 py-0.5 rounded-md font-bold uppercase transition-all duration-300 ease-in-out";
-    }
-  }
-
-  if (topbarNetStatus) {
-    if (isOnline) {
-      topbarNetStatus.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase transition-all duration-300 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400";
-      topbarNetStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>Online</span>`;
-    } else {
-      topbarNetStatus.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase transition-all duration-300 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400";
-      topbarNetStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><span>Offline</span>`;
     }
   }
 
@@ -180,7 +161,7 @@ export function showScannerView() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-export function showLoading(msg = "Fetching digital license...") {
+export function showLoading(msg = "Fetching digital licence...") {
   const loadingText = document.getElementById("loading-text");
   if (loadingText) loadingText.innerText = msg;
   showView("loading-view");
