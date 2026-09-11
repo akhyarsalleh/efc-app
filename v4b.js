@@ -14,7 +14,7 @@ import {
   showError, 
   showView,
   initBottomSheetMenu,
-  initDockBar,
+  initNavigationBars,
   loadSavedPreferences 
 } from './js/ui.js';
 
@@ -86,7 +86,6 @@ function initApp() {
   //load any future function init here
   loadSavedPreferences();
   initBottomSheetMenu();
-  initDockBar();
   initNavigationBars(); 
   
 } // end of func initApp()
