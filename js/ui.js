@@ -6,7 +6,42 @@ import { topbarHTML } from './components/topbar.js';
 import { dockHTML } from './components/dock.js';
 
 // ----------------------------------------------------
-// 0. APPEARANCE 3-STATE CYCLER (Solid Mini Heroicons)
+// 1. TEXT SIZE 3-STATE CYCLER (Standard, Large, Extra Large)
+// ----------------------------------------------------
+const textSizeIcons = {
+  std: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l3-7 3 7M5 15h4"/><path d="M13 18l4-11 4 11M14 14h6"/><path d="M11 7h2"/></svg>`,
+  lg: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l3-7 3 7M5 15h4"/><path d="M13 18l4-11 4 11M14 14h6"/><path d="M11 6l1-1 1 1"/></svg>`,
+  xl: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l3-7 3 7M5 15h4"/><path d="M13 18l4-11 4 11M14 14h6"/><path d="M11 6l1-1 1 1M11 3l1-1 1 1"/></svg>`
+};
+
+const textSizeScales = {
+  std: "100%",
+  lg: "115%",
+  xl: "130%"
+};
+
+let currentTextSize = localStorage.getItem("app_text_size") || "std";
+
+export function applyTextSize(size = currentTextSize) {
+  currentTextSize = size;
+  localStorage.setItem("app_text_size", size);
+
+  const topbarTextBtn = document.getElementById("topbar-text-btn");
+  if (topbarTextBtn) {
+    topbarTextBtn.innerHTML = textSizeIcons[size] || textSizeIcons.std;
+  }
+
+  document.documentElement.style.fontSize = textSizeScales[size] || "100%";
+}
+
+export function cycleTextSize() {
+  const sizes = ["std", "lg", "xl"];
+  const nextIndex = (sizes.indexOf(currentTextSize) + 1) % sizes.length;
+  applyTextSize(sizes[nextIndex]);
+}
+
+// ----------------------------------------------------
+// 2. APPEARANCE 3-STATE CYCLER (Solid Mini Heroicons)
 // ----------------------------------------------------
 const themeSolidIcons = {
   system: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h5A1.5 1.5 0 0 1 14 3.5v13a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 6 16.5v-13ZM10 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd"/></svg>`,
@@ -36,7 +71,7 @@ export function cycleThemeMode() {
 }
 
 // ----------------------------------------------------
-// 1. DUAL NAVIGATION BARS (Top Bar + Bottom Dock)
+// 3. DUAL NAVIGATION BARS (Top Bar + Bottom Dock)
 // ----------------------------------------------------
 export function initNavigationBars() {
   if (!document.getElementById("persistent-topbar")) {
@@ -86,19 +121,20 @@ export function initNavigationBars() {
 
   // Connect Top Bar toggle buttons
   document.getElementById("topbar-text-btn")?.addEventListener("click", () => {
-    document.getElementById("text-size-toggle")?.click();
+    cycleTextSize();
   });
 
   document.getElementById("topbar-theme-btn")?.addEventListener("click", () => {
     cycleThemeMode();
   });
 
-  // Apply initial theme state & icon on load
+  // Apply initial preference states and icons on load
+  applyTextSize(currentTextSize);
   applyThemeMode(currentThemeMode);
 }
 
 // ----------------------------------------------------
-// 2. NETWORK STATUS CONTROLLER
+// 4. NETWORK STATUS CONTROLLER
 // ----------------------------------------------------
 export function updateNetworkStatus() {
   const isOnline = navigator.onLine;
@@ -152,7 +188,7 @@ export function updateNetworkStatus() {
 }
 
 // ----------------------------------------------------
-// 3. VIEW STATE CONTROLLER
+// 5. VIEW STATE CONTROLLER
 // ----------------------------------------------------
 export function showView(viewId) {
   document.querySelectorAll(".app-view").forEach(view => {
