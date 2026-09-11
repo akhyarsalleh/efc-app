@@ -1,4 +1,4 @@
-// js/ui.js - View State, Navigation, and Connection UI Controller
+// js/ui.js - View State and Connection UI Controller
 
 import { stopScanner } from './scanner.js';
 import { renderHistoryList } from './storage.js';
@@ -9,12 +9,10 @@ import { dockHTML } from './components/dock.js';
 // 1. DUAL NAVIGATION BARS (Top Bar + Bottom Dock)
 // ----------------------------------------------------
 export function initNavigationBars() {
-  // Inject Top Bar if not present
   if (!document.getElementById("persistent-topbar")) {
     document.body.insertAdjacentHTML('afterbegin', topbarHTML);
   }
 
-  // Inject Bottom Dock if not present
   if (!document.getElementById("persistent-dock")) {
     document.body.insertAdjacentHTML('beforeend', dockHTML);
   }
@@ -22,33 +20,28 @@ export function initNavigationBars() {
   const topbar = document.getElementById("persistent-topbar");
   const dock = document.getElementById("persistent-dock");
 
-  const topbarMaxTravel = 48; // Top bar height (48px)
+  const topbarMaxTravel = 48; // Top bar height
   const dockMaxTravel = 80;   // Dock translation distance
 
-  let currentTranslateY = 0; // 0 = Dock visible, Topbar hidden
+  let currentTranslateY = 0;
 
   const getMaxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
   let lastClampedScrollY = Math.max(0, Math.min(window.scrollY, getMaxScrollY()));
 
-  // Dual Symmetrical Scroll Listener
   window.addEventListener("scroll", () => {
     const maxScrollY = getMaxScrollY();
     const clampedScrollY = Math.max(0, Math.min(window.scrollY, maxScrollY));
     const delta = clampedScrollY - lastClampedScrollY;
 
-    // At top of page (<= 2px): Dock is fully visible, Top Bar is fully hidden
     if (clampedScrollY <= 2) {
       currentTranslateY = 0;
-    } 
-    // Scroll movement within document bounds
-    else if (delta !== 0) {
+    } else if (delta !== 0) {
       currentTranslateY += delta;
       currentTranslateY = Math.max(0, Math.min(currentTranslateY, topbarMaxTravel));
     }
 
-    // Apply synchronized transform & opacity
-    const progress = currentTranslateY / topbarMaxTravel; // Range 0..1
+    const progress = currentTranslateY / topbarMaxTravel;
 
     if (dock) {
       dock.style.transform = `translateY(${progress * dockMaxTravel}px)`;
@@ -63,11 +56,9 @@ export function initNavigationBars() {
     lastClampedScrollY = clampedScrollY;
   }, { passive: true });
 
-  // Start Live Real-Time UTC Ticker
   startUTCClock();
 }
 
-// Live UTC / Zulu Clock Ticker
 function startUTCClock() {
   const clockEl = document.getElementById("topbar-utc-clock");
   if (!clockEl) return;
@@ -210,5 +201,4 @@ export function showError(msg) {
   showView("scanner-view");
 }
 
-// Global binding for inline HTML compatibility
 window.showScannerView = showScannerView;
