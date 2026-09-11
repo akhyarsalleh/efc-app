@@ -87,6 +87,7 @@ function initApp() {
   loadSavedPreferences();
   initBottomSheetMenu();
   initDockBar();
+  initNavigationBars(); 
   
 } // end of func initApp()
   //---------------------------------
