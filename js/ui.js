@@ -181,36 +181,35 @@ export function initDockBar() {
   if (!dock) return;
 
   let lastScrollY = window.scrollY;
-  if (lastScrollY > 25) {
-    dock.classList.add("translate-y-[150%]");
-  } else {
-    dock.classList.remove("translate-y-[150%]");
-  }
-
-  const scrollThreshold = 10;
+  let currentTranslateY = 0;
+  const dockHeight = 80; // Total pixels to hide the bar (64px height + shadow)
 
   window.addEventListener("scroll", () => {
     const currentScrollY = window.scrollY;
-    const scrollDelta = currentScrollY - lastScrollY;
+    const delta = currentScrollY - lastScrollY;
 
-    if (currentScrollY < 25) {
-      dock.classList.remove("translate-y-[150%]");
-      lastScrollY = currentScrollY;
-      return;
+    // Reset to fully visible at the top of the page
+    if (currentScrollY <= 2) {
+      currentTranslateY = 0;
+    } else {
+      // Accumulate the scroll movement into the translation
+      currentTranslateY += delta;
+      
+      // Clamp the value: 
+      // 0 = fully visible
+      // dockHeight = fully hidden
+      currentTranslateY = Math.max(0, Math.min(currentTranslateY, dockHeight));
     }
 
-    if (Math.abs(scrollDelta) > scrollThreshold) {
-      if (scrollDelta > 0) {
-        dock.classList.add("translate-y-[150%]");
-      } else {
-        dock.classList.remove("translate-y-[150%]");
-      }
-      lastScrollY = currentScrollY;
-    }
+    // Apply the translation instantly to follow the scroll rate
+    dock.style.transform = `translateY(${currentTranslateY}px)`;
+    
+    lastScrollY = currentScrollY;
   }, { passive: true });
 
   bindDockActions();
 }
+
 
 function bindDockActions() {
   const credsBtn = document.getElementById("dock-creds-btn");
