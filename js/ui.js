@@ -6,15 +6,43 @@ import { topbarHTML } from './components/topbar.js';
 import { dockHTML } from './components/dock.js';
 
 // ----------------------------------------------------
-// 1. DUAL NAVIGATION BARS (Redesigned Top Bar + Dock)
+// 0. APPEARANCE 3-STATE CYCLER (Solid Mini Heroicons)
+// ----------------------------------------------------
+const themeSolidIcons = {
+  system: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h5A1.5 1.5 0 0 1 14 3.5v13a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 6 16.5v-13ZM10 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd"/></svg>`,
+  light: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M10 2a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 2ZM10 15a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 15ZM10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM15.657 5.404a.75.75 0 1 0-1.06-1.06l-1.061 1.06a.75.75 0 0 0 1.06 1.06l1.06-1.06ZM6.464 14.596a.75.75 0 1 0-1.06-1.06l-1.06 1.06a.75.75 0 0 0 1.06 1.06l1.06-1.06ZM18 10a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 18 10ZM4.25 10a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 4.25 10ZM14.596 15.657a.75.75 0 0 0 1.06-1.06l-1.06-1.061a.75.75 0 1 0-1.06 1.06l1.06 1.061ZM5.404 6.464a.75.75 0 0 0 1.06-1.06l-1.06-1.06a.75.75 0 1 0-1.06 1.06l1.06 1.06Z"/></svg>`,
+  dark: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M7.455 2.004a.75.75 0 0 1 .868.397 6.5 6.5 0 1 0 9.277 9.277.75.75 0 0 1 1.266.697 8 8 0 1 1-11.808-10.102.75.75 0 0 1 .397-.269Z" clip-rule="evenodd"/></svg>`
+};
+
+let currentThemeMode = localStorage.getItem("app_theme_mode") || "system";
+
+export function applyThemeMode(mode = currentThemeMode) {
+  currentThemeMode = mode;
+  localStorage.setItem("app_theme_mode", mode);
+
+  const topbarBtn = document.getElementById("topbar-theme-btn");
+  if (topbarBtn) {
+    topbarBtn.innerHTML = themeSolidIcons[mode] || themeSolidIcons.system;
+  }
+
+  const isDark = mode === "dark" || (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.classList.toggle("dark", isDark);
+}
+
+export function cycleThemeMode() {
+  const modes = ["system", "light", "dark"];
+  const nextIndex = (modes.indexOf(currentThemeMode) + 1) % modes.length;
+  applyThemeMode(modes[nextIndex]);
+}
+
+// ----------------------------------------------------
+// 1. DUAL NAVIGATION BARS (Top Bar + Bottom Dock)
 // ----------------------------------------------------
 export function initNavigationBars() {
-  // Inject Top Bar if not present
   if (!document.getElementById("persistent-topbar")) {
     document.body.insertAdjacentHTML('afterbegin', topbarHTML);
   }
 
-  // Inject Bottom Dock if not present
   if (!document.getElementById("persistent-dock")) {
     document.body.insertAdjacentHTML('beforeend', dockHTML);
   }
@@ -29,7 +57,6 @@ export function initNavigationBars() {
   const getMaxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   let lastClampedScrollY = Math.max(0, Math.min(window.scrollY, getMaxScrollY()));
 
-  // Synchronized Dual-Scroll Motion Listener
   window.addEventListener("scroll", () => {
     const maxScrollY = getMaxScrollY();
     const clampedScrollY = Math.max(0, Math.min(window.scrollY, maxScrollY));
@@ -57,14 +84,17 @@ export function initNavigationBars() {
     lastClampedScrollY = clampedScrollY;
   }, { passive: true });
 
-  // Connect Top Bar toggle buttons to menu controls
+  // Connect Top Bar toggle buttons
   document.getElementById("topbar-text-btn")?.addEventListener("click", () => {
     document.getElementById("text-size-toggle")?.click();
   });
 
   document.getElementById("topbar-theme-btn")?.addEventListener("click", () => {
-    document.getElementById("dark-mode-toggle")?.click();
+    cycleThemeMode();
   });
+
+  // Apply initial theme state & icon on load
+  applyThemeMode(currentThemeMode);
 }
 
 // ----------------------------------------------------
