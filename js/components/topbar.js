@@ -1,9 +1,9 @@
-// js/components/topbar.js - Redesigned Persistent Mini Top Bar
+// js/components/topbar.js - Persistent Mini Top Bar Component
 
 export const topbarHTML = `
 <!-- REDESIGNED MINI TOP BAR -->
 <div id="persistent-topbar" 
-     class="fixed top-0 left-0 right-0 h-12 bg-blue-950 text-white border-b border-blue-900 shadow-lg z-40 transform -translate-y-full opacity-0 will-change-transform transition-all duration-300">
+     class="fixed top-0 left-0 right-0 h-12 bg-blue-950 text-white border-b border-blue-900 shadow-lg z-50 transform -translate-y-full opacity-0 will-change-transform transition-all duration-300">
   
   <div class="max-w-md mx-auto h-full flex items-center justify-between px-3">
     
@@ -33,20 +33,18 @@ export const topbarHTML = `
       </div>
     </div>
 
-    <!-- Right: Preference Toggles Box (Dynamic 3-State Icons) -->
+    <!-- Right: Preference Toggles Box -->
     <div class="flex items-stretch border border-white/20 rounded-lg overflow-hidden h-8">
       <!-- Dynamic Text Size Toggle -->
       <button id="topbar-text-btn" 
               class="h-full px-3.5 hover:bg-white/10 active:bg-white/20 transition-colors border-r border-white/20 flex items-center justify-center cursor-pointer" 
               aria-label="Toggle Text Size">
-        <!-- Dynamic icon injected by applyTextSize() -->
       </button>
 
       <!-- Dynamic Theme / Appearance Toggle -->
       <button id="topbar-theme-btn" 
               class="h-full px-3.5 hover:bg-white/10 active:bg-white/20 transition-colors flex items-center justify-center cursor-pointer" 
               aria-label="Toggle Appearance">
-        <!-- Dynamic icon injected by applyThemeMode() -->
       </button>
     </div>
 
