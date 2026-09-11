@@ -37,6 +37,14 @@ let lastScannedUrl = "";
 
 document.addEventListener("DOMContentLoaded", () => {
   initApp();
+    // Initialize the top bar & bottom dock
+  initNavigationBars();
+  
+  // Set up network listeners
+  updateNetworkStatus();
+  window.addEventListener("online", updateNetworkStatus);
+  window.addEventListener("offline", updateNetworkStatus);
+  
 });
 
 function initApp() {
